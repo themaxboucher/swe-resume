@@ -1,0 +1,1252 @@
+{
+  "type": "base",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "d9304283-0285-4dc7-9340-003c9e6e3afd",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "account"
+      ],
+      "writes": [
+        "s|tbl|public.account",
+        "n|tbl|public.account",
+        "e|tbl|public.account",
+        "n|rel|public.account",
+        "n|type|public.account",
+        "n|rel|public.account_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "cover_letter"
+      ],
+      "writes": [
+        "s|tbl|public.cover_letter",
+        "n|tbl|public.cover_letter",
+        "e|tbl|public.cover_letter",
+        "n|rel|public.cover_letter",
+        "n|type|public.cover_letter",
+        "n|rel|public.cover_letter_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "resume"
+      ],
+      "writes": [
+        "s|tbl|public.resume",
+        "n|tbl|public.resume",
+        "e|tbl|public.resume",
+        "n|rel|public.resume",
+        "n|type|public.resume",
+        "n|rel|public.resume_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "session"
+      ],
+      "writes": [
+        "s|tbl|public.session",
+        "n|tbl|public.session",
+        "e|tbl|public.session",
+        "n|rel|public.session",
+        "n|type|public.session",
+        "n|rel|public.session_pkey",
+        "n|rel|public.session_token_key"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "user"
+      ],
+      "writes": [
+        "s|tbl|public.user",
+        "n|tbl|public.user",
+        "e|tbl|public.user",
+        "n|rel|public.user",
+        "n|type|public.user",
+        "n|rel|public.user_pkey",
+        "n|rel|public.user_email_key"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "verification"
+      ],
+      "writes": [
+        "s|tbl|public.verification",
+        "n|tbl|public.verification",
+        "e|tbl|public.verification",
+        "n|rel|public.verification",
+        "n|type|public.verification",
+        "n|rel|public.verification_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "account",
+        "account_user_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.account_user_id_idx",
+        "n|idx|public.account_user_id_idx",
+        "e|idx|public.account_user_id_idx",
+        "n|rel|public.account_user_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.account",
+        "n|sch|public",
+        "n|col|public.account.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "cover_letter",
+        "cover_letter_user_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.cover_letter_user_id_idx",
+        "n|idx|public.cover_letter_user_id_idx",
+        "e|idx|public.cover_letter_user_id_idx",
+        "n|rel|public.cover_letter_user_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.cover_letter",
+        "n|sch|public",
+        "n|col|public.cover_letter.user_id",
+        "n|col|public.cover_letter.updated_at"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "resume",
+        "resume_user_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.resume_user_id_idx",
+        "n|idx|public.resume_user_id_idx",
+        "e|idx|public.resume_user_id_idx",
+        "n|rel|public.resume_user_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.resume",
+        "n|sch|public",
+        "n|col|public.resume.user_id",
+        "n|col|public.resume.updated_at"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "session",
+        "session_user_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.session_user_id_idx",
+        "n|idx|public.session_user_id_idx",
+        "e|idx|public.session_user_id_idx",
+        "n|rel|public.session_user_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.session",
+        "n|sch|public",
+        "n|col|public.session.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "verification",
+        "verification_identifier_idx"
+      ],
+      "writes": [
+        "s|idx|public.verification_identifier_idx",
+        "n|idx|public.verification_identifier_idx",
+        "e|idx|public.verification_identifier_idx",
+        "n|rel|public.verification_identifier_idx"
+      ],
+      "reads": [
+        "n|tbl|public.verification",
+        "n|sch|public",
+        "n|col|public.verification.identifier"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "account"
+      ],
+      "writes": [
+        "s|fk|public.account.account_user_id_user_id_fkey",
+        "n|fk|public.account.account_user_id_user_id_fkey",
+        "e|fk|public.account.account_user_id_user_id_fkey",
+        "n|con|public.account.account_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.account",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.account.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "cover_letter"
+      ],
+      "writes": [
+        "s|fk|public.cover_letter.cover_letter_user_id_user_id_fkey",
+        "n|fk|public.cover_letter.cover_letter_user_id_user_id_fkey",
+        "e|fk|public.cover_letter.cover_letter_user_id_user_id_fkey",
+        "n|con|public.cover_letter.cover_letter_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.cover_letter",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.cover_letter.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "resume"
+      ],
+      "writes": [
+        "s|fk|public.resume.resume_user_id_user_id_fkey",
+        "n|fk|public.resume.resume_user_id_user_id_fkey",
+        "e|fk|public.resume.resume_user_id_user_id_fkey",
+        "n|con|public.resume.resume_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.resume",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.resume.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "session"
+      ],
+      "writes": [
+        "s|fk|public.session.session_user_id_user_id_fkey",
+        "n|fk|public.session.session_user_id_user_id_fkey",
+        "e|fk|public.session.session_user_id_user_id_fkey",
+        "n|con|public.session.session_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.session",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.session.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    }
+  ],
+  "ddl": [
+    {
+      "schema": "public",
+      "name": "account",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "cover_letter",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "resume",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "session",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "user",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "verification",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "id",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "account_id",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "provider_id",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "user_id",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "access_token",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "refresh_token",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "id_token",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "access_token_expires_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "refresh_token_expires_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "scope",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "password",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "created_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "updated_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "cover_letter",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "cover_letter",
+      "name": "user_id",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "cover_letter",
+      "name": "title",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "cover_letter",
+      "name": "content",
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "cover_letter",
+      "name": "design",
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "cover_letter",
+      "name": "created_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "cover_letter",
+      "name": "updated_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "resume",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "resume",
+      "name": "user_id",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "resume",
+      "name": "title",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "resume",
+      "name": "content",
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "resume",
+      "name": "design",
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "resume",
+      "name": "created_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "resume",
+      "name": "updated_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "session",
+      "name": "id",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "session",
+      "name": "expires_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "session",
+      "name": "token",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "session",
+      "name": "created_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "session",
+      "name": "updated_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "session",
+      "name": "ip_address",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "session",
+      "name": "user_agent",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "session",
+      "name": "user_id",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "user",
+      "name": "id",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "user",
+      "name": "name",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "user",
+      "name": "email",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "user",
+      "name": "email_verified",
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "user",
+      "name": "image",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "user",
+      "name": "created_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "user",
+      "name": "updated_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "verification",
+      "name": "id",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "verification",
+      "name": "identifier",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "verification",
+      "name": "value",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "verification",
+      "name": "expires_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "verification",
+      "name": "created_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "verification",
+      "name": "updated_at",
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "account_user_id_idx",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "cover_letter",
+      "name": "cover_letter_user_id_idx",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "updated_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "resume",
+      "name": "resume_user_id_idx",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "updated_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "session",
+      "name": "session_user_id_idx",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "verification",
+      "name": "verification_identifier_idx",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "identifier",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "account_user_id_user_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "cover_letter",
+      "name": "cover_letter_user_id_user_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "resume",
+      "name": "resume_user_id_user_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "session",
+      "name": "session_user_id_user_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "user",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "account",
+      "name": "account_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "cover_letter",
+      "name": "cover_letter_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "resume",
+      "name": "resume_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "session",
+      "name": "session_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "user",
+      "name": "user_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "verification",
+      "name": "verification_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "session",
+      "name": "session_token_key",
+      "nameExplicit": false,
+      "columns": [
+        "token"
+      ],
+      "nullsNotDistinct": false,
+      "entityType": "uniques"
+    },
+    {
+      "schema": "public",
+      "table": "user",
+      "name": "user_email_key",
+      "nameExplicit": false,
+      "columns": [
+        "email"
+      ],
+      "nullsNotDistinct": false,
+      "entityType": "uniques"
+    }
+  ]
+}

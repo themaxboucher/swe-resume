@@ -1,0 +1,303 @@
+/* Document template styles ("classic"). Sizes are in em so they follow the design's font size. */
+
+.doc-root {
+  font-family: var(--doc-font);
+  font-size: var(--doc-font-size);
+  line-height: var(--doc-line-height);
+  color: #1f1f1f;
+  font-kerning: normal;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.doc-root *,
+.doc-root *::before,
+.doc-root *::after {
+  box-sizing: border-box;
+}
+.doc-root :where(p, h1, h2, ul, ol, li, address) {
+  margin: 0;
+  padding: 0;
+  font: inherit;
+}
+.doc-root a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.doc-page {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+}
+.doc-block {
+  display: flow-root;
+}
+
+/* Header */
+.doc-header {
+  padding-bottom: 0.35em;
+}
+.doc-header--divider {
+  padding-bottom: 0.85em;
+  border-bottom: 2px solid var(--doc-accent);
+}
+.doc-root[data-header-align="center"] .doc-header {
+  text-align: center;
+}
+.doc-name {
+  font-size: var(--doc-name-size, 2.15em) !important;
+  font-weight: 700 !important;
+  line-height: 1.12 !important;
+  letter-spacing: -0.015em;
+  color: #111;
+}
+.doc-headline {
+  margin-top: 0.2em;
+  font-size: 1.12em;
+  font-weight: 500;
+  color: var(--doc-accent);
+}
+.doc-contacts {
+  margin-top: 0.55em;
+  font-size: 0.92em;
+  color: #555;
+}
+.doc-contact {
+  display: inline-block;
+}
+.doc-contact:not(:last-child)::after {
+  content: "·";
+  margin: 0 0.55em;
+  color: #b3b3b3;
+}
+.doc-contacts[data-separator="line"] .doc-contact:not(:last-child)::after {
+  content: "";
+  display: inline-block;
+  width: 1px;
+  height: 0.85em;
+  margin: 0 0.75em;
+  vertical-align: -0.08em;
+  background: #c4c4c4;
+}
+
+.doc-contacts[data-underline-links] a {
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.18em;
+}
+
+/* With icons, the icons separate the items, so gaps replace the dots. */
+.doc-contacts--icons {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.1em;
+  row-gap: 0.2em;
+}
+.doc-root[data-header-align="center"] .doc-contacts--icons {
+  justify-content: center;
+}
+.doc-contacts--icons .doc-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.doc-contacts--icons .doc-contact::after {
+  content: none;
+}
+.doc-contacts--icons:not([data-icon-variant="plain"], [data-icon-variant="filled"]) {
+  column-gap: 1.3em;
+  row-gap: 0.4em;
+}
+.doc-contacts--icons:not([data-icon-variant="plain"], [data-icon-variant="filled"]) .doc-contact {
+  gap: 0.5em;
+}
+
+/* Contact icons. Also used outside documents (design panel previews). */
+.doc-contact-icon {
+  --doc-icon-color: #333;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--doc-icon-color);
+}
+.doc-contacts .doc-contact-icon {
+  --doc-icon-color: inherit;
+}
+.doc-contact-icon svg {
+  width: 1em;
+  height: 1em;
+}
+.doc-contact-icon:not([data-variant="plain"], [data-variant="filled"]) {
+  width: 1.75em;
+  height: 1.75em;
+}
+.doc-contact-icon:not([data-variant="plain"], [data-variant="filled"]) svg {
+  width: 0.95em;
+  height: 0.95em;
+}
+.doc-contact-icon[data-variant="circle"],
+.doc-contact-icon[data-variant="rounded"],
+.doc-contact-icon[data-variant="square"] {
+  background: var(--doc-icon-color);
+  color: #fff;
+}
+.doc-contact-icon[data-variant$="-outline"] {
+  border: 1px solid var(--doc-icon-color);
+}
+.doc-contact-icon[data-variant^="circle"] {
+  border-radius: 999px;
+}
+.doc-contact-icon[data-variant^="rounded"] {
+  border-radius: 0.4em;
+}
+
+/* Sections */
+.doc-section-title {
+  margin-bottom: 0.65em !important;
+  padding-bottom: 0.3em !important;
+  border-bottom: 1px solid #e2e2e2;
+  font-size: var(--doc-heading-size, 0.8em) !important;
+  font-weight: 700 !important;
+  letter-spacing: var(--doc-heading-tracking, 0.13em);
+  text-transform: uppercase;
+  color: var(--doc-accent);
+}
+
+.doc-entry-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1em;
+}
+.doc-entry-heading {
+  min-width: 0;
+  font-size: var(--doc-entry-title-size, 1em);
+}
+.doc-entry-title {
+  font-weight: 650;
+  color: #111;
+}
+.doc-entry-heading .doc-entry-subtitle {
+  color: #333;
+}
+.doc-entry-subtitle--italic {
+  font-style: italic;
+}
+.doc-entry-subtitle--underline a {
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.18em;
+}
+.doc-entry-separator[data-separator="bar"] {
+  display: inline-block;
+  width: 1px;
+  height: 0.85em;
+  margin: 0 0.55em;
+  vertical-align: -0.08em;
+  background: #bdbdbd;
+}
+.doc-entry-dates {
+  flex-shrink: 0;
+  font-size: 0.9em;
+  color: #666;
+  font-variant-numeric: tabular-nums;
+}
+.doc-entry-meta {
+  font-size: 0.95em;
+  color: #555;
+}
+.doc-entry-meta-item:not(:last-child)::after {
+  content: "·";
+  margin: 0 0.45em;
+  color: #b3b3b3;
+}
+.doc-entry > .doc-entry-body {
+  margin-top: 0.3em;
+}
+
+.doc-compact-title {
+  font-weight: 650;
+  color: #111;
+}
+.doc-col-main .doc-compact-title + .doc-compact-detail::before {
+  content: ": ";
+}
+.doc-col-sidebar .doc-compact > span {
+  display: block;
+}
+.doc-col-sidebar .doc-compact-detail {
+  color: #555;
+}
+.doc-col-sidebar .doc-entry-row {
+  display: block;
+}
+.doc-col-sidebar .doc-entry-dates {
+  display: block;
+}
+
+/* Rich text */
+/* List chunks render as <ul class="doc-rt">, nested lists as descendants. */
+ul.doc-rt,
+ol.doc-rt,
+.doc-rt ul,
+.doc-rt ol {
+  padding-left: 1.15em;
+}
+ul.doc-rt,
+.doc-rt ul {
+  list-style-type: disc;
+}
+ol.doc-rt,
+.doc-rt ol {
+  list-style-type: decimal;
+}
+.doc-rt li {
+  padding-left: 0.15em;
+}
+.doc-rt li::marker {
+  color: var(--doc-accent);
+}
+.doc-rt li > :where(ul, ol) {
+  margin-top: 2px;
+}
+.doc-rt a {
+  text-decoration: underline;
+  text-decoration-color: #b5b5b5;
+  text-underline-offset: 2px;
+}
+.doc-rt strong {
+  font-weight: 650;
+}
+
+/* Cover letter */
+.doc-letter-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9em;
+}
+.doc-letter-date {
+  color: #555;
+}
+.doc-letter-recipient {
+  display: flex;
+  flex-direction: column;
+  font-style: normal;
+}
+.doc-letter-subject {
+  font-weight: 650;
+  color: #111;
+}
+.doc-letter-signature {
+  margin-top: 1.8em !important;
+  font-weight: 600;
+  color: #111;
+}
+
+@media print {
+  .doc-page:not(:last-child) {
+    break-after: page;
+  }
+}

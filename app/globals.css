@@ -8,8 +8,11 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-heading: var(--font-sans);
+  --font-display: var(--font-young-serif), "Times New Roman", serif;
+  --shadow-raised: var(--shadow-raised);
+  --shadow-card: var(--shadow-card);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,39 +51,43 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* pdf.net-inspired palette: off-white canvas, white cards, near-black ink, one sky-600 accent. */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.488 0.243 264.376);
-  --primary-foreground: oklch(0.97 0.014 254.604);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
+  --background: #f7f7f7;
+  --foreground: #2b2b2b;
+  --card: #ffffff;
+  --card-foreground: #2b2b2b;
+  --popover: #ffffff;
+  --popover-foreground: #2b2b2b;
+  --primary: #0084d1;
+  --primary-foreground: #ffffff;
+  --secondary: #ededed;
+  --secondary-foreground: #2b2b2b;
+  --muted: #efefef;
+  --muted-foreground: #6b6b6b;
+  --accent: #f0f9ff;
+  --accent-foreground: #2b2b2b;
+  --destructive: #dc2626;
+  --border: #e4e4e4;
+  --input: #dcdcdc;
+  --ring: #0084d1;
+  --chart-1: #0084d1;
+  --chart-2: #74d4ff;
+  --chart-3: #2b2b2b;
+  --chart-4: #9a9a9a;
+  --chart-5: #d4d4d4;
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.546 0.245 262.881);
-  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #2b2b2b;
+  --sidebar-primary: #0084d1;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f3f3f3;
+  --sidebar-accent-foreground: #2b2b2b;
+  --sidebar-border: #e4e4e4;
+  --sidebar-ring: #0084d1;
+
+  --shadow-raised: 0 0 0 1px rgb(0 0 0 / 0.12), 0 8px 16px -12px rgb(0 0 0 / 0.6);
+  --shadow-card: 0 0 0 1px rgb(0 0 0 / 0.07), 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 24px -18px rgb(0 0 0 / 0.35);
 }
 
 .dark {
@@ -90,7 +97,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.424 0.199 265.638);
+  --primary: oklch(0.588 0.158 241.966);
   --primary-foreground: oklch(0.97 0.014 254.604);
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
@@ -109,7 +116,7 @@
   --chart-5: oklch(0.424 0.199 265.638);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.623 0.214 259.815);
+  --sidebar-primary: oklch(0.588 0.158 241.966);
   --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
@@ -130,4 +137,45 @@
   html {
     @apply font-sans;
   }
+}
+@layer components {
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+    font-weight: 400;
+  }
+  .dashed-panel {
+    border: 1.5px dashed color-mix(in oklab, var(--foreground) 22%, transparent);
+    border-radius: var(--radius-xl);
+  }
+}
+
+/* Tiptap editor content (form side, not the document) */
+.rt-editor p {
+  margin: 0;
+}
+.rt-editor p + p {
+  margin-top: 0.5em;
+}
+.rt-editor ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+.rt-editor ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+.rt-editor li + li {
+  margin-top: 0.15em;
+}
+.rt-editor a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+.rt-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--muted-foreground);
+  pointer-events: none;
 }

@@ -1,0 +1,43 @@
+import { eq } from "drizzle-orm";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { PrintView } from "@/components/document/print-view";
+import { db } from "@/lib/db";
+import { coverLetter, resume } from "@/lib/db/schema";
+import { coverLetterContentSchema, designSchema, resumeContentSchema } from "@/lib/documents/schema";
+import { verifyPrintToken, type PrintKind } from "@/lib/print-token";
+
+export const metadata: Metadata = { title: "Print", robots: { index: false, follow: false } };
+
+async function PrintDocument({ params, searchParams }: PageProps<"/print/[kind]/[id]">) {
+  const { kind, id } = await params;
+  const { token } = await searchParams;
+  if (kind !== "resume" && kind !== "cover-letter") notFound();
+  if (!verifyPrintToken(kind as PrintKind, id, typeof token === "string" ? token : undefined)) notFound();
+
+  if (kind === "resume") {
+    const [row] = await db.select().from(resume).where(eq(resume.id, id));
+    if (!row) notFound();
+    return (
+      <PrintView kind="resume" content={resumeContentSchema.parse(row.content)} design={designSchema.parse(row.design)} />
+    );
+  }
+  const [row] = await db.select().from(coverLetter).where(eq(coverLetter.id, id));
+  if (!row) notFound();
+  return (
+    <PrintView
+      kind="cover-letter"
+      content={coverLetterContentSchema.parse(row.content)}
+      design={designSchema.parse(row.design)}
+    />
+  );
+}
+
+export default function PrintPage(props: PageProps<"/print/[kind]/[id]">) {
+  return (
+    <Suspense>
+      <PrintDocument {...props} />
+    </Suspense>
+  );
+}
