@@ -432,6 +432,15 @@ export function DesignPanel({
             ]}
           />
         </Row>
+        <RangeRow
+          label="Space below name"
+          value={design.headerSpacing}
+          min={0}
+          max={24}
+          step={1}
+          format={(v) => `${v} px`}
+          onChange={(v) => set("headerSpacing", v)}
+        />
         <ToggleRow
           label="Divider line"
           description="Rule under your name and contact details"

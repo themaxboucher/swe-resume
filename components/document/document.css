@@ -54,7 +54,7 @@
   color: #111;
 }
 .doc-contacts {
-  margin-top: 0.55em;
+  margin-top: var(--doc-header-gap, 0.55em);
   font-size: 0.92em;
   color: var(--doc-muted, #555);
 }

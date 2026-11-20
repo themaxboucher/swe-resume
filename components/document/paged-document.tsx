@@ -149,6 +149,7 @@ export function PagedDocument({
     "--doc-font": fontFamily,
     "--doc-font-size": `${design.fontSize}pt`,
     "--doc-name-size": `${design.fontSize + design.nameSize}pt`,
+    "--doc-header-gap": `${design.headerSpacing}px`,
     "--doc-heading-size": `${design.fontSize + design.headingSize}pt`,
     "--doc-heading-tracking": `${design.headingLetterSpacing}em`,
     "--doc-entry-title-size": `${design.fontSize + design.entryTitleSize}pt`,

@@ -295,6 +295,8 @@ export const designSchema = z.preprocess(
     sidebarWidth: z.number().min(25).max(45).default(32),
     headerAlign: z.enum(["left", "center"]).default("left"),
     headerDivider: z.boolean().default(true),
+    /** Space between the name and the contact details, in px. */
+    headerSpacing: z.number().min(0).max(24).catch(7),
     contactStyle: z.enum([...CONTACT_SEPARATORS, ...CONTACT_ICON_STYLES]).catch("dot"),
     contactIconColor: z.enum(["text", "accent"]).catch("text"),
     underlineContactLinks: z.boolean().catch(false),
