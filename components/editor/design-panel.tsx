@@ -1,6 +1,16 @@
 "use client";
 
-import { AlignCenterIcon, AlignLeftIcon, CheckIcon, ColumnsIcon, PanelLeftIcon, PanelRightIcon, SquareIcon } from "lucide-react";
+import {
+  AlignCenterIcon,
+  AlignLeftIcon,
+  CheckIcon,
+  ColumnsIcon,
+  MousePointerClickIcon,
+  PanelLeftIcon,
+  PanelRightIcon,
+  PrinterIcon,
+  SquareIcon,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { ContactIconMark } from "@/components/document/contact-icons";
 import { DOCUMENT_FONTS } from "@/components/document/document-fonts";
@@ -18,7 +28,6 @@ import {
 } from "@/lib/documents/schema";
 import { SECTION_LABELS, defaultColumnFor } from "@/lib/documents/sections";
 import { cn } from "@/lib/utils";
-import { useDocument } from "./document-store";
 import { StepSlider } from "./step-slider";
 import { Segmented } from "./fields";
 
@@ -36,6 +45,9 @@ const ACCENT_PRESETS = [
   "#475569",
 ];
 
+/** Darkest to lightest; the first matches the body text. */
+const MUTED_TEXT_PRESETS = ["#1f1f1f", "#333333", "#555555", "#777777", "#999999"];
+
 const DATE_FORMAT_EXAMPLES: Record<(typeof DATE_FORMATS)[number], string> = {
   "MM/YYYY": "03/2024",
   "MMM YYYY": "Mar 2024",
@@ -45,7 +57,7 @@ const DATE_FORMAT_EXAMPLES: Record<(typeof DATE_FORMATS)[number], string> = {
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="rounded-xl bg-card p-4 shadow-card">
+    <section className="rounded-xl bg-card p-4 shadow-panel">
       <h3 className="mb-4 text-sm font-semibold">{title}</h3>
       <div className="flex flex-col gap-5">{children}</div>
     </section>
@@ -90,6 +102,50 @@ function ToggleRow({
       </span>
       <Switch checked={checked} onCheckedChange={(next) => onChange(next)} />
     </label>
+  );
+}
+
+function ColorSwatches({
+  name,
+  presets,
+  value,
+  onChange,
+}: {
+  name: string;
+  presets: string[];
+  value: string;
+  onChange: (color: string) => void;
+}) {
+  const current = value.toLowerCase();
+  return (
+    <div className="flex flex-wrap gap-2">
+      {presets.map((color) => (
+        <button
+          key={color}
+          type="button"
+          aria-label={`${name} ${color}`}
+          aria-pressed={current === color}
+          onClick={() => onChange(color)}
+          className="flex size-8 items-center justify-center rounded-full ring-1 ring-black/10 transition-transform hover:scale-110"
+          style={{ background: color }}
+        >
+          {current === color && <CheckIcon className="size-4 text-white" />}
+        </button>
+      ))}
+      <label
+        className="relative flex size-8 cursor-pointer items-center justify-center overflow-hidden rounded-full ring-1 ring-black/10"
+        style={{ background: "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)" }}
+        title="Custom color"
+      >
+        <input
+          type="color"
+          aria-label={`Custom ${name.toLowerCase()} color`}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="absolute inset-0 cursor-pointer opacity-0"
+        />
+      </label>
+    </div>
   );
 }
 
@@ -273,9 +329,19 @@ function SubtitleStyleGroup({
   );
 }
 
-export function DesignPanel({ sections }: { sections?: Section[] }) {
-  const design = useDocument<unknown, DocumentDesign>((s) => s.design);
-  const updateDesign = useDocument<unknown, (recipe: (d: DocumentDesign) => void) => void>((s) => s.updateDesign);
+export function DesignPanel({
+  design,
+  updateDesign,
+  sections,
+  header,
+}: {
+  design: DocumentDesign;
+  updateDesign: (recipe: (draft: DocumentDesign) => void) => void;
+  /** Resume sections in display order, for the column placement list. Omitted for cover letters. */
+  sections?: Section[];
+  /** Shown above the settings, e.g. which version they apply to. */
+  header?: ReactNode;
+}) {
   const set = <K extends keyof DocumentDesign>(key: K, value: DocumentDesign[K]) =>
     updateDesign((d) => {
       d[key] = value;
@@ -283,6 +349,7 @@ export function DesignPanel({ sections }: { sections?: Section[] }) {
 
   return (
     <div className="flex flex-col gap-3">
+      {header}
       {sections && (
         <Group title="Layout">
           <Row label="Columns">
@@ -344,7 +411,9 @@ export function DesignPanel({ sections }: { sections?: Section[] }) {
                     );
                   })}
                 </ul>
-                <p className="text-xs text-muted-foreground">Order within each column follows the Content tab.</p>
+                <p className="text-xs text-muted-foreground">
+                  Order within each column follows the Content tab. Hidden sections aren&apos;t listed.
+                </p>
               </Row>
             </>
           )}
@@ -375,6 +444,24 @@ export function DesignPanel({ sections }: { sections?: Section[] }) {
             color={design.contactIconColor === "accent" ? design.accentColor : "#333"}
             onChange={(v) => set("contactStyle", v)}
           />
+        </Row>
+        <Row label="Show links as">
+          <Segmented
+            ariaLabel="Show links as"
+            value={design.linkDisplay}
+            onChange={(v) => set("linkDisplay", v)}
+            options={[
+              { value: "label", label: <><MousePointerClickIcon /> Labels</>, title: "“LinkedIn”, clickable in the PDF" },
+              { value: "url", label: <><PrinterIcon /> Full URLs</>, title: "“linkedin.com/in/you”, readable on paper" },
+            ]}
+          />
+          <p className="text-xs text-muted-foreground">
+            {design.linkDisplay === "url"
+              ? sections
+                ? "Contacts and linked projects spell out their address, for printed copies."
+                : "Contacts spell out their address, for printed copies."
+              : "Linked contacts show their text, like “LinkedIn”. Best for PDFs sent by email."}
+          </p>
         </Row>
         <ToggleRow
           label="Underline links"
@@ -409,45 +496,41 @@ export function DesignPanel({ sections }: { sections?: Section[] }) {
           />
           <SubtitleStyleGroup
             title="Employer"
-            description="Experience entries. Projects, certifications and custom sections follow this too."
+            description="Experience entries. Certifications and custom sections follow this too."
             titleNoun="Job title"
             subtitleNoun="Employer"
             value={design.employerStyle}
             onChange={(recipe) => updateDesign((d) => recipe(d.employerStyle))}
             linkOption
           />
+          <Group title="Projects">
+            <ToggleRow
+              label="Underline links"
+              description="Underline the project name when it has a link"
+              checked={design.underlineProjectLinks}
+              onChange={(v) => set("underlineProjectLinks", v)}
+            />
+          </Group>
         </>
       )}
 
-      <Group title="Accent color">
-        <div className="flex flex-wrap gap-2">
-          {ACCENT_PRESETS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              aria-label={`Accent ${color}`}
-              aria-pressed={design.accentColor.toLowerCase() === color}
-              onClick={() => set("accentColor", color)}
-              className="flex size-8 items-center justify-center rounded-full ring-1 ring-black/10 transition-transform hover:scale-110"
-              style={{ background: color }}
-            >
-              {design.accentColor.toLowerCase() === color && <CheckIcon className="size-4 text-white" />}
-            </button>
-          ))}
-          <label
-            className="relative flex size-8 cursor-pointer items-center justify-center overflow-hidden rounded-full ring-1 ring-black/10"
-            style={{ background: "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)" }}
-            title="Custom color"
-          >
-            <input
-              type="color"
-              aria-label="Custom accent color"
-              value={design.accentColor}
-              onChange={(e) => set("accentColor", e.target.value)}
-              className="absolute inset-0 cursor-pointer opacity-0"
-            />
-          </label>
-        </div>
+      <Group title="Colors">
+        <Row label="Accent">
+          <ColorSwatches
+            name="Accent"
+            presets={ACCENT_PRESETS}
+            value={design.accentColor}
+            onChange={(v) => set("accentColor", v)}
+          />
+        </Row>
+        <Row label="Secondary text" value={<span className="text-muted-foreground">Contacts, dates, locations</span>}>
+          <ColorSwatches
+            name="Secondary text"
+            presets={MUTED_TEXT_PRESETS}
+            value={design.mutedTextColor}
+            onChange={(v) => set("mutedTextColor", v)}
+          />
+        </Row>
       </Group>
 
       <Group title="Typography">

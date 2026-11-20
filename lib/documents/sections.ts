@@ -10,6 +10,8 @@ type ListSectionConfig = {
   labels: Partial<Record<Exclude<EntryField, "dates" | "description">, { label: string; placeholder?: string }>>;
   /** Whether entries render compactly (one line each) in templates. */
   compact: boolean;
+  /** Whether the entry's `url` links its title instead of showing as its own line. */
+  linkTitle?: boolean;
   addLabel: string;
   emptyTitle: string;
   /** Default column when the user switches to a two-column layout. */
@@ -45,13 +47,13 @@ export const SECTION_CONFIG: Record<ListSectionType, ListSectionConfig> = {
   },
   projects: {
     label: "Projects",
-    fields: ["title", "subtitle", "url", "dates", "description"],
+    fields: ["title", "dates", "description"],
     labels: {
       title: { label: "Project name", placeholder: "Open-source CLI" },
-      subtitle: { label: "Role or tech", placeholder: "Creator · TypeScript" },
       url: { label: "Link", placeholder: "github.com/you/project" },
     },
     compact: false,
+    linkTitle: true,
     addLabel: "Add project",
     emptyTitle: "Untitled project",
     defaultColumn: "main",
@@ -137,7 +139,6 @@ export function newId() {
 export function emptyEntry(): Entry {
   return {
     id: newId(),
-    visible: true,
     title: "",
     subtitle: "",
     subtitleUrl: "",

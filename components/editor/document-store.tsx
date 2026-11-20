@@ -6,6 +6,9 @@ import { useStore } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { createStore, type StoreApi } from "zustand/vanilla";
 import type { DocumentDesign } from "@/lib/documents/schema";
+import { HistoryProvider, throttleHistory } from "./history";
+
+// Store for single-design documents (cover letters). Resumes use resume-store.tsx.
 
 export type DocumentState<C> = { title: string; content: C; design: DocumentDesign };
 
@@ -16,9 +19,6 @@ type DocumentActions<C> = {
 };
 
 export type DocumentStoreState<C> = DocumentState<C> & DocumentActions<C>;
-
-/** Typing bursts closer together than this collapse into a single undo step. */
-const HISTORY_IDLE_MS = 600;
 
 export function createDocumentStore<C>(initial: DocumentState<C>) {
   return createStore<DocumentStoreState<C>>()(
@@ -33,15 +33,7 @@ export function createDocumentStore<C>(initial: DocumentState<C>) {
         limit: 200,
         partialize: ({ title, content, design }) => ({ title, content, design }),
         equality: (a, b) => a.title === b.title && a.content === b.content && a.design === b.design,
-        handleSet: (handleSet) => {
-          let lastChange = 0;
-          const record = handleSet as (...args: unknown[]) => void;
-          return (...args) => {
-            const now = Date.now();
-            if (now - lastChange > HISTORY_IDLE_MS) record(...args);
-            lastChange = now;
-          };
-        },
+        handleSet: (handleSet) => throttleHistory(handleSet as (...args: unknown[]) => void),
       },
     ),
   );
@@ -52,7 +44,19 @@ export type DocumentStore<C> = ReturnType<typeof createDocumentStore<C>>;
 const DocumentStoreContext = createContext<DocumentStore<unknown> | null>(null);
 
 export function DocumentStoreProvider<C>({ store, children }: { store: DocumentStore<C>; children: ReactNode }) {
-  return <DocumentStoreContext value={store as DocumentStore<unknown>}>{children}</DocumentStoreContext>;
+  const canUndo = useStore(store.temporal, (s) => s.pastStates.length > 0);
+  const canRedo = useStore(store.temporal, (s) => s.futureStates.length > 0);
+  const history = {
+    canUndo,
+    canRedo,
+    undo: () => store.temporal.getState().undo(),
+    redo: () => store.temporal.getState().redo(),
+  };
+  return (
+    <DocumentStoreContext value={store as DocumentStore<unknown>}>
+      <HistoryProvider value={history}>{children}</HistoryProvider>
+    </DocumentStoreContext>
+  );
 }
 
 export function useDocumentStoreApi<C>() {
@@ -65,27 +69,31 @@ export function useDocument<C, T>(selector: (state: DocumentStoreState<C>) => T)
   return useStore(useDocumentStoreApi<C>(), selector);
 }
 
-export function useHistory() {
-  const store = useDocumentStoreApi();
-  const canUndo = useStore(store.temporal, (s) => s.pastStates.length > 0);
-  const canRedo = useStore(store.temporal, (s) => s.futureStates.length > 0);
-  return { canUndo, canRedo, undo: () => store.temporal.getState().undo(), redo: () => store.temporal.getState().redo() };
-}
-
 // ---------- Autosave ----------
 
 export type SaveStatus = "saved" | "unsaved" | "saving" | "error";
 
 const AUTOSAVE_DELAY_MS = 800;
 
-export function useAutosave<C>(
-  store: StoreApi<DocumentStoreState<C>>,
-  save: (state: DocumentState<C>) => Promise<unknown>,
+function shallowChanged(a: Record<string, unknown>, b: Record<string, unknown>) {
+  return Object.keys(a).some((key) => a[key] !== b[key]);
+}
+
+/**
+ * Debounced, last-write-wins autosave of the slice `snapshot` picks from the store. `save` gets the new
+ * snapshot and the last one that saved successfully, so it can send only what changed.
+ */
+export function useAutosave<T, S extends Record<string, unknown>>(
+  store: Pick<StoreApi<T>, "getState" | "subscribe">,
+  snapshot: (state: T) => S,
+  save: (next: S, previous: S) => Promise<unknown>,
 ) {
   const [status, setStatus] = useState<SaveStatus>("saved");
   const saveRef = useRef(save);
+  const snapshotRef = useRef(snapshot);
   useEffect(() => {
     saveRef.current = save;
+    snapshotRef.current = snapshot;
   });
   const flushRef = useRef<() => Promise<void>>(async () => {});
 
@@ -93,6 +101,7 @@ export function useAutosave<C>(
     let timer: ReturnType<typeof setTimeout> | undefined;
     let inFlight: Promise<void> | null = null;
     let dirty = false;
+    let saved = snapshotRef.current(store.getState());
 
     const flush = async (): Promise<void> => {
       clearTimeout(timer);
@@ -104,10 +113,11 @@ export function useAutosave<C>(
       if (!dirty) return;
       dirty = false;
       setStatus("saving");
-      const { title, content, design } = store.getState();
+      const next = snapshotRef.current(store.getState());
       inFlight = (async () => {
         try {
-          await saveRef.current({ title, content, design });
+          await saveRef.current(next, saved);
+          saved = next;
           setStatus(dirty ? "unsaved" : "saved");
         } catch (error) {
           dirty = true;
@@ -126,7 +136,7 @@ export function useAutosave<C>(
     flushRef.current = flush;
 
     const unsubscribe = store.subscribe((state, prev) => {
-      if (state.title === prev.title && state.content === prev.content && state.design === prev.design) return;
+      if (!shallowChanged(snapshotRef.current(state), snapshotRef.current(prev))) return;
       dirty = true;
       setStatus("unsaved");
       clearTimeout(timer);

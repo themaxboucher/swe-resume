@@ -1,22 +1,28 @@
 import type { CSSProperties } from "react";
 import { contactIcon, resolveContact } from "@/lib/documents/contacts";
-import { isIconStyle, type DocumentDesign, type PersonalDetails } from "@/lib/documents/schema";
+import { isIconStyle, type DocumentDesign, type LinkDisplay, type PersonalDetails } from "@/lib/documents/schema";
 import { cn } from "@/lib/utils";
 import { ContactIconMark } from "./contact-icons";
 
 export function DocumentHeader({
   personal,
   design,
+  linkDisplays,
 }: {
   personal: PersonalDetails;
-  design: Pick<DocumentDesign, "headerDivider" | "contactStyle" | "contactIconColor" | "underlineContactLinks">;
+  design: Pick<
+    DocumentDesign,
+    "headerDivider" | "contactStyle" | "contactIconColor" | "underlineContactLinks" | "linkDisplay"
+  >;
+  /** Per-contact overrides of `design.linkDisplay`. */
+  linkDisplays?: Record<string, LinkDisplay>;
 }) {
   const contacts = personal.contacts.flatMap((contact) => {
-    const resolved = resolveContact(contact);
+    const resolved = resolveContact(contact, linkDisplays?.[contact.id] ?? design.linkDisplay);
     return resolved ? [{ ...resolved, id: contact.id, icon: contactIcon(contact) }] : [];
   });
 
-  if (!personal.name && !personal.headline && contacts.length === 0) return null;
+  if (!personal.name && contacts.length === 0) return null;
 
   const iconStyle = isIconStyle(design.contactStyle) ? design.contactStyle : null;
   const iconColor = design.contactIconColor === "accent" ? "var(--doc-accent)" : "#333";
@@ -24,7 +30,6 @@ export function DocumentHeader({
   return (
     <header className={cn("doc-header", design.headerDivider && "doc-header--divider")}>
       {personal.name && <h1 className="doc-name">{personal.name}</h1>}
-      {personal.headline && <p className="doc-headline">{personal.headline}</p>}
       {contacts.length > 0 && (
         <p
           className={cn("doc-contacts", iconStyle && "doc-contacts--icons")}

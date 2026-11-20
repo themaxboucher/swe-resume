@@ -1,5 +1,5 @@
 import { displayUrl, hrefFor } from "./format";
-import type { ContactField, ContactIcon, ContactType } from "./schema";
+import type { ContactField, ContactIcon, ContactType, LinkDisplay } from "./schema";
 import { newId } from "./sections";
 
 type ContactMeta = {
@@ -74,9 +74,7 @@ export const CONTACT_META: Record<ContactType, ContactMeta> = {
   },
 };
 
-export function contactIcon(
-  contact: Pick<ContactField, "type" | "icon">,
-): ContactIcon {
+export function contactIcon(contact: Pick<ContactField, "type" | "icon">): ContactIcon {
   return contact.icon ?? CONTACT_META[contact.type].icon;
 }
 
@@ -84,9 +82,13 @@ export function newContact(type: ContactType, value = ""): ContactField {
   return { id: newId(), type, value, url: "" };
 }
 
-/** What a contact shows on the document, or null when it has nothing to show. */
+/**
+ * What a contact shows on the document, or null when it has nothing to show. With `display: "url"`,
+ * linked contacts spell out their URL (for print) instead of their text.
+ */
 export function resolveContact(
   contact: ContactField,
+  display: LinkDisplay = "label",
 ): { label: string; href?: string } | null {
   const value = contact.value.trim();
   const url = contact.url.trim();
@@ -100,9 +102,15 @@ export function resolveContact(
         ? { label: value, href: `mailto:${value}` }
         : { label: value, href: `tel:${value.replace(/[^\d+]/g, "")}` };
     default: {
-      const label = value || (url ? displayUrl(url) : "");
+      const label = display === "url" && url ? displayUrl(url) : value || (url ? displayUrl(url) : "");
       if (!label) return null;
       return { label, href: url ? hrefFor(url) : undefined };
     }
   }
+}
+
+/** Whether a contact's link display (label vs spelled-out URL) makes a difference. */
+export function hasLinkChoice(contact: ContactField) {
+  const { link } = CONTACT_META[contact.type];
+  return link === "always" || (link === "optional" && contact.url.trim() !== "");
 }

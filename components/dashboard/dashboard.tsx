@@ -2,7 +2,10 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
+import { NewVersionDialog } from "@/components/editor/version-dialogs";
+import { downloadFileName } from "@/lib/documents/versions";
 import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { DocumentGrid } from "./document-grid";
@@ -17,11 +20,11 @@ export function Dashboard() {
   const tab: Tab = searchParams.get("tab") === "cover-letters" ? "cover-letters" : "resumes";
 
   const trpc = useTRPC();
-  const resumeCount = useQuery(trpc.resume.list.queryOptions()).data?.length;
+  const versionCount = useQuery(trpc.resume.get.queryOptions()).data?.versions.length;
   const letterCount = useQuery(trpc.coverLetter.list.queryOptions()).data?.length;
 
   const tabs: { value: Tab; label: string; count?: number }[] = [
-    { value: "resumes", label: "Resumes", count: resumeCount },
+    { value: "resumes", label: "Resume versions", count: versionCount },
     { value: "cover-letters", label: "Cover letters", count: letterCount },
   ];
 
@@ -30,7 +33,9 @@ export function Dashboard() {
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-2">
           <h1 className="font-display text-4xl sm:text-5xl">Your documents</h1>
-          <p className="text-muted-foreground">Everything saves automatically. Duplicate a resume to tailor it per job.</p>
+          <p className="text-muted-foreground">
+            One resume, a version for every kind of role. Each version picks what it shows and how it looks.
+          </p>
         </div>
         <div role="tablist" aria-label="Document type" className="flex gap-1.5">
           {tabs.map((t) => (
@@ -55,54 +60,75 @@ export function Dashboard() {
           ))}
         </div>
       </div>
-      {tab === "resumes" ? <Resumes /> : <CoverLetters />}
+      {tab === "resumes" ? <ResumeVersions /> : <CoverLetters />}
     </div>
   );
 }
 
-function Resumes() {
+function ResumeVersions() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const router = useRouter();
-  const list = useQuery(trpc.resume.list.queryOptions());
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: trpc.resume.list.queryKey() });
-  const onError = () => toast.error("Something went wrong. Please try again.");
+  const resume = useQuery(trpc.resume.get.queryOptions());
+  const [newOpen, setNewOpen] = useState(false);
+  const refresh = () => queryClient.invalidateQueries({ queryKey: trpc.resume.get.queryKey() });
+  const onError = (error: { message: string }) => toast.error(error.message || "Something went wrong. Please try again.");
+  // Wait for the fresh list before opening the editor, which reads it from the cache.
+  const openVersion = async ({ id }: { id: string }) => {
+    await refresh();
+    router.push(`/resume?v=${id}`);
+  };
 
-  const create = useMutation(
-    trpc.resume.create.mutationOptions({ onSuccess: ({ id }) => router.push(`/resumes/${id}`), onError }),
-  );
-  const duplicate = useMutation(
-    trpc.resume.duplicate.mutationOptions({ onSuccess: ({ id }) => router.push(`/resumes/${id}`), onError }),
-  );
-  const update = useMutation(trpc.resume.update.mutationOptions({ onSuccess: invalidate, onError }));
+  const create = useMutation(trpc.resume.createVersion.mutationOptions({ onSuccess: openVersion, onError }));
+  const duplicate = useMutation(trpc.resume.duplicateVersion.mutationOptions({ onSuccess: openVersion, onError }));
+  const rename = useMutation(trpc.resume.renameVersion.mutationOptions({ onSuccess: refresh, onError }));
   const remove = useMutation(
-    trpc.resume.delete.mutationOptions({
+    trpc.resume.deleteVersion.mutationOptions({
       onSuccess: () => {
-        toast.success("Resume deleted");
-        return invalidate();
+        toast.success("Version deleted");
+        return refresh();
       },
       onError,
     }),
   );
 
+  const data = resume.data;
+  const fileName = data ? downloadFileName(data.fileName, data.content.personal.name) : "";
+
   return (
-    <DocumentGrid
-      kind="resume"
-      noun="resume"
-      isError={list.isError}
-      creating={create.isPending || duplicate.isPending}
-      items={list.data?.map((r) => ({
-        id: r.id,
-        title: r.title,
-        updatedAt: r.updatedAt,
-        thumbnail: <DocumentThumbnail kind="resume" content={r.content} design={r.design} />,
-      }))}
-      onCreateBlank={() => create.mutate({})}
-      onDuplicate={(id) => duplicate.mutate({ id })}
-      onRename={(id, title) => update.mutateAsync({ id, title })}
-      onDelete={(id) => remove.mutateAsync({ id })}
-      emptyIllustration={<ResumeIllustration />}
-    />
+    <>
+      <DocumentGrid
+        noun="version"
+        isError={resume.isError}
+        creating={create.isPending || duplicate.isPending}
+        hrefFor={(id) => `/resume?v=${id}`}
+        downloadFor={(item) => ({ url: `/api/pdf/resume/${item.id}`, fileName })}
+        items={data?.versions.map((v) => ({
+          id: v.id,
+          title: v.name,
+          // Editing the shared text changes every version.
+          updatedAt: v.updatedAt > data.updatedAt ? v.updatedAt : data.updatedAt,
+          thumbnail: <DocumentThumbnail kind="resume" content={data.content} layout={v.layout} design={v.design} />,
+        }))}
+        onCreateBlank={() => setNewOpen(true)}
+        onNew={() => setNewOpen(true)}
+        onDuplicate={(id) => duplicate.mutate({ id })}
+        onRename={(id, name) => rename.mutateAsync({ id, name })}
+        onDelete={(id) => remove.mutateAsync({ id })}
+        canDelete={(data?.versions.length ?? 0) > 1}
+        deleteDescription="Your resume's text stays. Only this version's choices of what to show, its order and its design are removed."
+        emptyIllustration={<ResumeIllustration />}
+      />
+      {data && (
+        <NewVersionDialog
+          open={newOpen}
+          onOpenChange={setNewOpen}
+          versions={data.versions}
+          defaultSourceId={data.lastVersionId}
+          onCreate={(input) => create.mutateAsync(input)}
+        />
+      )}
+    </>
   );
 }
 
@@ -136,8 +162,9 @@ function CoverLetters() {
 
   return (
     <DocumentGrid
-      kind="cover-letter"
       noun="cover letter"
+      hrefFor={(id) => `/cover-letters/${id}`}
+      downloadFor={(item) => ({ url: `/api/pdf/cover-letter/${item.id}`, fileName: item.title })}
       isError={list.isError}
       creating={create.isPending || duplicate.isPending}
       items={list.data?.map((r) => ({

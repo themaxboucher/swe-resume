@@ -19,7 +19,6 @@ type PersonalSeed = { name?: string; email?: string };
 export function emptyPersonal({ name = "", email = "" }: PersonalSeed = {}): PersonalDetails {
   return {
     name,
-    headline: "",
     contacts: [
       newContact("email", email),
       newContact("phone"),
@@ -33,9 +32,9 @@ export function emptyPersonal({ name = "", email = "" }: PersonalSeed = {}): Per
 
 export function newSection(type: Section["type"]): Section {
   if (type === "profile") {
-    return { id: newId(), type, title: SECTION_LABELS.profile, visible: true, content: null };
+    return { id: newId(), type, title: SECTION_LABELS.profile, content: null };
   }
-  return { id: newId(), type: type as ListSectionType, title: SECTION_LABELS[type], visible: true, entries: [] };
+  return { id: newId(), type: type as ListSectionType, title: SECTION_LABELS[type], entries: [] };
 }
 
 export function blankResumeContent(personal: PersonalSeed = {}): ResumeContent {

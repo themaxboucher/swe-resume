@@ -53,16 +53,10 @@
   letter-spacing: -0.015em;
   color: #111;
 }
-.doc-headline {
-  margin-top: 0.2em;
-  font-size: 1.12em;
-  font-weight: 500;
-  color: var(--doc-accent);
-}
 .doc-contacts {
   margin-top: 0.55em;
   font-size: 0.92em;
-  color: #555;
+  color: var(--doc-muted, #555);
 }
 .doc-contact {
   display: inline-block;
@@ -186,6 +180,7 @@
 .doc-entry-subtitle--italic {
   font-style: italic;
 }
+.doc-entry-title--underline a,
 .doc-entry-subtitle--underline a {
   text-decoration: underline;
   text-decoration-thickness: 0.06em;
@@ -202,12 +197,12 @@
 .doc-entry-dates {
   flex-shrink: 0;
   font-size: 0.9em;
-  color: #666;
+  color: var(--doc-muted, #555);
   font-variant-numeric: tabular-nums;
 }
 .doc-entry-meta {
   font-size: 0.95em;
-  color: #555;
+  color: var(--doc-muted, #555);
 }
 .doc-entry-meta-item:not(:last-child)::after {
   content: "·";
@@ -229,7 +224,7 @@
   display: block;
 }
 .doc-col-sidebar .doc-compact-detail {
-  color: #555;
+  color: var(--doc-muted, #555);
 }
 .doc-col-sidebar .doc-entry-row {
   display: block;
@@ -279,7 +274,7 @@ ol.doc-rt,
   gap: 0.9em;
 }
 .doc-letter-date {
-  color: #555;
+  color: var(--doc-muted, #555);
 }
 .doc-letter-recipient {
   display: flex;

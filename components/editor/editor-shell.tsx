@@ -4,6 +4,7 @@ import {
   AlertCircleIcon,
   ArrowLeftIcon,
   CheckIcon,
+  ChevronDownIcon,
   DownloadIcon,
   EyeIcon,
   Loader2Icon,
@@ -13,24 +14,38 @@ import {
   Undo2Icon,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { PagedDocument } from "@/components/document/paged-document";
 import { pageDimensions, type DocumentBlocks } from "@/components/document/types";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { DocumentDesign } from "@/lib/documents/schema";
 import { cn } from "@/lib/utils";
-import { useDocument, useHistory, type DocumentStoreState, type SaveStatus } from "./document-store";
+import type { SaveStatus } from "./document-store";
+import { useEditorHistory } from "./history";
+import { openDocumentLink, PreviewDialog } from "./preview-dialog";
 
-type EditorShellProps<C> = {
-  kind: "resume" | "cover-letter";
-  id: string;
-  saveStatus: SaveStatus;
+export type DownloadConfig = {
+  /** PDF endpoint for what's currently open. */
+  url: string;
+  fileName: string;
+  /** Pushes pending edits before the PDF renders. */
   flush: () => Promise<void>;
+  /** Extra controls (e.g. the file name) in a menu beside the button. */
+  settings?: ReactNode;
+};
+
+type EditorShellProps = {
+  /** Title or version picker shown in the top bar. */
+  title: ReactNode;
+  saveStatus: SaveStatus;
+  download: DownloadConfig;
   form: ReactNode;
   designPanel: ReactNode;
-  buildBlocks: (content: C, design: DocumentDesign) => DocumentBlocks;
+  /** Usually a <PreviewPane />. */
+  preview: ReactNode;
 };
 
 function isEditableTarget(target: EventTarget | null) {
@@ -38,10 +53,10 @@ function isEditableTarget(target: EventTarget | null) {
   return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
 }
 
-export function EditorShell<C>({ kind, id, saveStatus, flush, form, designPanel, buildBlocks }: EditorShellProps<C>) {
+export function EditorShell({ title, saveStatus, download, form, designPanel, preview }: EditorShellProps) {
   const [panel, setPanel] = useState<"content" | "design">("content");
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
-  const { undo, redo, canUndo, canRedo } = useHistory();
+  const { undo, redo, canUndo, canRedo } = useEditorHistory();
 
   // Document-level undo/redo when focus isn't inside a text field (fields keep their native undo).
   useEffect(() => {
@@ -67,7 +82,7 @@ export function EditorShell<C>({ kind, id, saveStatus, flush, form, designPanel,
           </TooltipTrigger>
           <TooltipContent>Back to dashboard</TooltipContent>
         </Tooltip>
-        <TitleInput />
+        {title}
         <SaveIndicator status={saveStatus} />
         <div className="ml-auto flex items-center gap-1">
           <div className="hidden items-center sm:flex">
@@ -86,7 +101,7 @@ export function EditorShell<C>({ kind, id, saveStatus, flush, form, designPanel,
               <TooltipContent>Redo (⇧⌘Z)</TooltipContent>
             </Tooltip>
           </div>
-          <DownloadButton kind={kind} id={id} flush={flush} />
+          <DownloadButton {...download} />
         </div>
       </header>
 
@@ -144,22 +159,21 @@ export function EditorShell<C>({ kind, id, saveStatus, flush, form, designPanel,
             <div className={cn(panel !== "design" && "hidden")}>{designPanel}</div>
           </div>
         </aside>
-        <PreviewPane<C> buildBlocks={buildBlocks} className={cn(mobileView === "edit" && "hidden lg:flex")} />
+        <div className={cn("flex min-h-0 min-w-0 flex-1", mobileView === "edit" && "hidden lg:flex")}>{preview}</div>
       </div>
     </div>
   );
 }
 
-function TitleInput() {
-  const title = useDocument<unknown, string>((s) => s.title);
-  const setTitle = useDocument<unknown, (t: string) => void>((s) => s.setTitle);
+/** Editable document title, for documents that have one (cover letters). */
+export function TitleInput({ value, onChange }: { value: string; onChange: (title: string) => void }) {
   return (
     <input
       aria-label="Document title"
-      value={title}
+      value={value}
       maxLength={120}
-      onChange={(e) => setTitle(e.target.value)}
-      onBlur={(e) => !e.target.value.trim() && setTitle("Untitled")}
+      onChange={(e) => onChange(e.target.value)}
+      onBlur={(e) => !e.target.value.trim() && onChange("Untitled")}
       className="h-9 min-w-0 flex-1 truncate rounded-md bg-transparent px-2 text-[15px] font-semibold outline-none hover:bg-muted focus:bg-muted sm:max-w-80 sm:flex-none"
     />
   );
@@ -186,23 +200,22 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
   );
 }
 
-function DownloadButton({ kind, id, flush }: { kind: string; id: string; flush: () => Promise<void> }) {
-  const title = useDocument<unknown, string>((s) => s.title);
+function DownloadButton({ url, fileName, flush, settings }: DownloadConfig) {
   const [busy, setBusy] = useState(false);
 
   const download = async () => {
     setBusy(true);
     try {
       await flush();
-      const response = await fetch(`/api/pdf/${kind}/${id}`);
+      const response = await fetch(url);
       if (!response.ok) throw new Error(await response.text());
       const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
+      const objectUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = url;
-      link.download = `${title.trim().replace(/[\\/:*?"<>|]+/g, "-") || "document"}.pdf`;
+      link.href = objectUrl;
+      link.download = `${fileName.trim().replace(/[\\/:*?"<>|]+/g, "-") || "document"}.pdf`;
       link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
     } catch (error) {
       console.error(error);
       toast.error("Couldn't generate the PDF. Please try again.");
@@ -211,27 +224,40 @@ function DownloadButton({ kind, id, flush }: { kind: string; id: string; flush: 
     }
   };
 
-  return (
-    <Button onClick={download} disabled={busy} className="ml-1">
+  const button = (
+    <Button onClick={download} disabled={busy} className={cn(settings ? "rounded-r-none" : "ml-1")}>
       {busy ? <Loader2Icon className="animate-spin" /> : <DownloadIcon />}
       <span className="hidden sm:inline">{busy ? "Preparing…" : "Download PDF"}</span>
       <span className="sm:hidden">PDF</span>
     </Button>
   );
+  if (!settings) return button;
+
+  return (
+    <div className="ml-1 flex items-center">
+      {button}
+      <Popover>
+        <PopoverTrigger
+          render={
+            <Button
+              aria-label="Download settings"
+              className="w-8 rounded-l-none border-l border-l-white/25 px-0"
+            />
+          }
+        >
+          <ChevronDownIcon />
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-80">
+          {settings}
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
 }
 
 const PREVIEW_PADDING = 32;
 
-function PreviewPane<C>({
-  buildBlocks,
-  className,
-}: {
-  buildBlocks: (content: C, design: DocumentDesign) => DocumentBlocks;
-  className?: string;
-}) {
-  const content = useDocument<C, C>((s: DocumentStoreState<C>) => s.content);
-  const design = useDocument<C, DocumentDesign>((s) => s.design);
-  const blocks = useMemo(() => buildBlocks(content, design), [buildBlocks, content, design]);
+export function PreviewPane({ blocks, design }: { blocks: DocumentBlocks; design: DocumentDesign }) {
   const [pageCount, setPageCount] = useState(1);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -244,13 +270,7 @@ function PreviewPane<C>({
     return () => observer.disconnect();
   }, []);
 
-  // Web links open in a new tab so the editor stays put; mailto:/tel: links go to the mail or phone app.
-  const openLink = (event: MouseEvent<HTMLDivElement>) => {
-    const href = (event.target as HTMLElement).closest(".doc-page a[href]")?.getAttribute("href");
-    if (!href || !/^https?:/i.test(href)) return;
-    event.preventDefault();
-    window.open(href, "_blank", "noopener,noreferrer");
-  };
+  const [zoomed, setZoomed] = useState(false);
 
   const pageWidth = pageDimensions(design.pageSize).width;
   const scale = availableWidth ? Math.min(1, (availableWidth - PREVIEW_PADDING * 2) / pageWidth) : 0;
@@ -258,22 +278,38 @@ function PreviewPane<C>({
   return (
     <div
       ref={containerRef}
-      className={cn("relative flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-[#ececec]", className)}
-      onClick={openLink}
+      className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-[#ececec]"
+      onClick={openDocumentLink}
     >
       <div className="flex justify-center" style={{ padding: PREVIEW_PADDING }}>
         {scale > 0 && (
-          <PagedDocument
-            blocks={blocks}
-            design={design}
-            scale={scale}
-            pageGap={24 / scale}
-            className="[&_.doc-page_a:hover]:underline"
-            pageClassName="shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_18px_40px_-24px_rgb(0_0_0/0.45)]"
-            onPageCount={setPageCount}
-          />
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label="Enlarge preview"
+            className="cursor-zoom-in rounded-xs outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            onClick={(event) => {
+              if (!(event.target as HTMLElement).closest("a[href]")) setZoomed(true);
+            }}
+            onKeyDown={(event) => {
+              if (event.target !== event.currentTarget || (event.key !== "Enter" && event.key !== " ")) return;
+              event.preventDefault();
+              setZoomed(true);
+            }}
+          >
+            <PagedDocument
+              blocks={blocks}
+              design={design}
+              scale={scale}
+              pageGap={24 / scale}
+              className="[&_.doc-page_a:hover]:underline"
+              pageClassName="shadow-[0_0_0_1px_rgb(0_0_0/0.06),0_18px_40px_-24px_rgb(0_0_0/0.45)]"
+              onPageCount={setPageCount}
+            />
+          </div>
         )}
       </div>
+      <PreviewDialog open={zoomed} onOpenChange={setZoomed} blocks={blocks} design={design} />
       <div className="pointer-events-none sticky bottom-4 mt-auto flex justify-center">
         <span className="rounded-full bg-foreground/85 px-3 py-1 text-xs font-medium text-background backdrop-blur">
           {pageCount} {pageCount === 1 ? "page" : "pages"} · {design.pageSize === "A4" ? "A4" : "US Letter"}

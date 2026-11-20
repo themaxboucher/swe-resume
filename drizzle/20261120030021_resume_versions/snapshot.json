@@ -1,0 +1,448 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "6fec3a8e-a29d-408c-ad2d-a67f1cf89121",
+  "prevIds": [
+    "d9304283-0285-4dc7-9340-003c9e6e3afd"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "resume_version"
+      ],
+      "writes": [
+        "s|tbl|public.resume_version",
+        "n|tbl|public.resume_version",
+        "e|tbl|public.resume_version",
+        "n|rel|public.resume_version",
+        "n|type|public.resume_version",
+        "n|rel|public.resume_version_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "resume",
+        "file_name"
+      ],
+      "writes": [
+        "s|col|public.resume.file_name",
+        "n|col|public.resume.file_name",
+        "e|col|public.resume.file_name"
+      ],
+      "reads": [
+        "n|tbl|public.resume",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "resume",
+        "last_version_id"
+      ],
+      "writes": [
+        "s|col|public.resume.last_version_id",
+        "n|col|public.resume.last_version_id",
+        "e|col|public.resume.last_version_id"
+      ],
+      "reads": [
+        "n|tbl|public.resume",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "resume_version",
+        "resume_version_resume_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.resume_version_resume_id_idx",
+        "n|idx|public.resume_version_resume_id_idx",
+        "e|idx|public.resume_version_resume_id_idx",
+        "n|rel|public.resume_version_resume_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.resume_version",
+        "n|sch|public",
+        "n|col|public.resume_version.resume_id",
+        "n|col|public.resume_version.position"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "resume_version",
+        "resume_version_user_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.resume_version_user_id_idx",
+        "n|idx|public.resume_version_user_id_idx",
+        "e|idx|public.resume_version_user_id_idx",
+        "n|rel|public.resume_version_user_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.resume_version",
+        "n|sch|public",
+        "n|col|public.resume_version.user_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "resume_version"
+      ],
+      "writes": [
+        "s|fk|public.resume_version.resume_version_resume_id_resume_id_fkey",
+        "n|fk|public.resume_version.resume_version_resume_id_resume_id_fkey",
+        "e|fk|public.resume_version.resume_version_resume_id_resume_id_fkey",
+        "n|con|public.resume_version.resume_version_resume_id_resume_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.resume_version",
+        "n|sch|public",
+        "n|tbl|public.resume",
+        "n|sch|public",
+        "n|col|public.resume_version.resume_id",
+        "n|col|public.resume.id",
+        "e|uniqueness|public.resume.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "resume_version"
+      ],
+      "writes": [
+        "s|fk|public.resume_version.resume_version_user_id_user_id_fkey",
+        "n|fk|public.resume_version.resume_version_user_id_user_id_fkey",
+        "e|fk|public.resume_version.resume_version_user_id_user_id_fkey",
+        "n|con|public.resume_version.resume_version_user_id_user_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.resume_version",
+        "n|sch|public",
+        "n|tbl|public.user",
+        "n|sch|public",
+        "n|col|public.resume_version.user_id",
+        "n|col|public.user.id",
+        "e|uniqueness|public.user.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "resume_version",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume",
+        "name": "file_name",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "''",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume",
+        "name": "last_version_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume_version",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume_version",
+        "name": "resume_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume_version",
+        "name": "user_id",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume_version",
+        "name": "name",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume_version",
+        "name": "position",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "0",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume_version",
+        "name": "design",
+        "type": "jsonb",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume_version",
+        "name": "layout",
+        "type": "jsonb",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume_version",
+        "name": "created_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume_version",
+        "name": "updated_at",
+        "type": "timestamp",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume_version",
+        "name": "resume_version_resume_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "resume_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "position",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume_version",
+        "name": "resume_version_user_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "user_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume_version",
+        "name": "resume_version_resume_id_resume_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "resume_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "resume",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume_version",
+        "name": "resume_version_user_id_user_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "user_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "user",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume_version",
+        "name": "resume_version_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    }
+  ]
+}

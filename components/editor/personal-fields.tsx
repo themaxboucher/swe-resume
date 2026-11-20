@@ -1,7 +1,7 @@
 "use client";
 
-import { Link2OffIcon, LinkIcon, PlusIcon, Trash2Icon, UnlinkIcon } from "lucide-react";
-import { useState, type HTMLAttributes } from "react";
+import { Link2OffIcon, LinkIcon, MoreHorizontalIcon, PlusIcon, Trash2Icon, UnlinkIcon } from "lucide-react";
+import { useState, type HTMLAttributes, type ReactNode } from "react";
 import { toast } from "sonner";
 import { CONTACT_ICON_COMPONENTS, CONTACT_ICON_LABELS } from "@/components/document/contact-icons";
 import {
@@ -23,110 +23,144 @@ import {
   type PersonalDetails,
 } from "@/lib/documents/schema";
 import { cn } from "@/lib/utils";
-import { useDocumentStoreApi } from "./document-store";
 import { TextField } from "./fields";
+import { useEditorHistory } from "./history";
 import { DragHandle, SortableItem, SortableList, arrayMove } from "./sortable";
 
 type Update = (recipe: (draft: PersonalDetails) => void) => void;
 
 const ADDABLE_TYPES: ContactType[] = ["email", "phone", "location", "website", "linkedin", "github"];
 
+/** Name and contact details for documents without versions (cover letters). */
 export function PersonalFields({ value, update }: { value: PersonalDetails; update: Update }) {
-  const store = useDocumentStoreApi();
-  const [focusId, setFocusId] = useState<string | null>(null);
-
-  const updateContact = (id: string, recipe: (contact: ContactField) => void) =>
-    update((draft) => {
-      const contact = draft.contacts.find((c) => c.id === id);
-      if (contact) recipe(contact);
-    });
-
-  const addContact = (type: ContactType) => {
-    const contact = newContact(type);
-    update((draft) => {
-      draft.contacts.push(contact);
-    });
-    setFocusId(contact.id);
-  };
-
-  const removeContact = (contact: ContactField) => {
-    update((draft) => {
-      draft.contacts = draft.contacts.filter((c) => c.id !== contact.id);
-    });
-    const name = contact.type === "custom" ? contact.value || "Custom field" : CONTACT_META[contact.type].label;
-    toast(`${name} removed`, { action: { label: "Undo", onClick: () => store.temporal.getState().undo() } });
-  };
+  const { undo } = useEditorHistory();
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <TextField
-          label="Full name"
-          value={value.name}
-          onChange={(v) => update((d) => void (d.name = v))}
-          placeholder="Ada Lovelace"
-        />
-        <TextField
-          label="Professional title"
-          value={value.headline}
-          onChange={(v) => update((d) => void (d.headline = v))}
-          placeholder="Software Engineer"
-        />
+      <TextField
+        label="Full name"
+        value={value.name}
+        onChange={(v) => update((d) => void (d.name = v))}
+        placeholder="Ada Lovelace"
+      />
+      <ContactList
+        items={value.contacts.map((contact) => ({ contact, shown: true }))}
+        onReorder={(activeId, overId) =>
+          update((draft) => {
+            const from = draft.contacts.findIndex((c) => c.id === activeId);
+            const to = draft.contacts.findIndex((c) => c.id === overId);
+            draft.contacts = arrayMove(draft.contacts, from, to);
+          })
+        }
+        onAdd={(contact) => update((draft) => void draft.contacts.push(contact))}
+        onChange={(id, recipe) =>
+          update((draft) => {
+            const contact = draft.contacts.find((c) => c.id === id);
+            if (contact) recipe(contact);
+          })
+        }
+        onRemove={(contact) => {
+          update((draft) => {
+            draft.contacts = draft.contacts.filter((c) => c.id !== contact.id);
+          });
+          toast(`${contactName(contact)} removed`, { action: { label: "Undo", onClick: undo } });
+        }}
+      />
+    </div>
+  );
+}
+
+export function contactName(contact: ContactField) {
+  return contact.type === "custom" ? contact.value || "Custom field" : CONTACT_META[contact.type].label;
+}
+
+/** Sortable, editable list of contact fields. Versioned documents add per-row controls and menu items. */
+export function ContactList({
+  items,
+  onReorder,
+  onAdd,
+  onChange,
+  onRemove,
+  controls,
+  menu,
+}: {
+  /** Contacts in display order, with whether the current version shows each. */
+  items: { contact: ContactField; shown: boolean }[];
+  onReorder: (activeId: string, overId: string) => void;
+  onAdd: (contact: ContactField) => void;
+  onChange: (id: string, recipe: (contact: ContactField) => void) => void;
+  onRemove: (contact: ContactField) => void;
+  /** Shown beside each field's label, e.g. visibility controls. */
+  controls?: (contact: ContactField) => ReactNode;
+  /** Extra items for each row's menu. With a menu, Remove moves into it. */
+  menu?: (contact: ContactField) => ReactNode;
+}) {
+  const [focusId, setFocusId] = useState<string | null>(null);
+  const contacts = items.map((item) => item.contact);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between">
+        <span className="text-xs font-medium text-muted-foreground">Contact details</span>
+        {items.length > 1 && <span className="text-[11px] text-muted-foreground/80">Drag to reorder</span>}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div className="flex items-baseline justify-between">
-          <span className="text-xs font-medium text-muted-foreground">Contact details</span>
-          {value.contacts.length > 1 && (
-            <span className="text-[11px] text-muted-foreground/80">Drag to reorder</span>
-          )}
+      {items.length > 0 && (
+        <div className="@container flex flex-col divide-y divide-border rounded-lg border border-border">
+          <SortableList
+            items={contacts}
+            onReorder={(from, to) => onReorder(contacts[from].id, contacts[to].id)}
+          >
+            {items.map(({ contact, shown }) => (
+              <SortableItem key={contact.id} id={contact.id} className="first:rounded-t-lg last:rounded-b-lg bg-card">
+                {(handle) => (
+                  <ContactRow
+                    contact={contact}
+                    shown={shown}
+                    handle={handle}
+                    autoFocus={contact.id === focusId}
+                    onChange={(recipe) => onChange(contact.id, recipe)}
+                    onRemove={() => onRemove(contact)}
+                    controls={controls?.(contact)}
+                    menu={menu?.(contact)}
+                  />
+                )}
+              </SortableItem>
+            ))}
+          </SortableList>
         </div>
+      )}
 
-        {value.contacts.length > 0 && (
-          <div className="@container flex flex-col divide-y divide-border rounded-lg border border-border">
-            <SortableList
-              items={value.contacts}
-              onReorder={(from, to) =>
-                update((draft) => {
-                  draft.contacts = arrayMove(draft.contacts, from, to);
-                })
-              }
-            >
-              {value.contacts.map((contact) => (
-                <SortableItem key={contact.id} id={contact.id} className="first:rounded-t-lg last:rounded-b-lg bg-card">
-                  {(handle) => (
-                    <ContactRow
-                      contact={contact}
-                      handle={handle}
-                      autoFocus={contact.id === focusId}
-                      onChange={(recipe) => updateContact(contact.id, recipe)}
-                      onRemove={() => removeContact(contact)}
-                    />
-                  )}
-                </SortableItem>
-              ))}
-            </SortableList>
-          </div>
-        )}
-
-        <AddContactMenu contacts={value.contacts} onAdd={addContact} />
-      </div>
+      <AddContactMenu
+        contacts={contacts}
+        onAdd={(type) => {
+          const contact = newContact(type);
+          onAdd(contact);
+          setFocusId(contact.id);
+        }}
+      />
     </div>
   );
 }
 
 function ContactRow({
   contact,
+  shown,
   handle,
   autoFocus,
   onChange,
   onRemove,
+  controls,
+  menu,
 }: {
   contact: ContactField;
+  shown: boolean;
   handle: { attributes: HTMLAttributes<HTMLElement>; listeners: HTMLAttributes<HTMLElement> | undefined };
   autoFocus: boolean;
   onChange: (recipe: (contact: ContactField) => void) => void;
   onRemove: () => void;
+  controls?: ReactNode;
+  menu?: ReactNode;
 }) {
   const meta = CONTACT_META[contact.type];
   const [linkOpen, setLinkOpen] = useState(false);
@@ -137,19 +171,24 @@ function ContactRow({
 
   return (
     <div className="flex items-start gap-1 p-1.5">
-      <div className="mt-5 flex h-8 items-center">
+      <div className="mt-6 flex h-8 items-center">
         <DragHandle {...handle} label={`Reorder ${name}`} />
       </div>
-      <IconPicker
-        fieldName={name}
-        value={contactIcon(contact)}
-        suggestions={meta.iconChoices}
-        onChange={(icon) => onChange((c) => void (c.icon = icon))}
-      />
+      <div className={cn("contents", !shown && "*:opacity-55")}>
+        <IconPicker
+          fieldName={name}
+          value={contactIcon(contact)}
+          suggestions={meta.iconChoices}
+          onChange={(icon) => onChange((c) => void (c.icon = icon))}
+        />
+      </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="px-0.5 text-[11px] leading-4 font-medium text-muted-foreground">{name}</span>
-        <div className={cn("grid gap-1.5", showLink && "@md:grid-cols-2")}>
+        <div className="flex h-5 items-center justify-between gap-2 px-0.5">
+          <span className="truncate text-[11px] leading-4 font-medium text-muted-foreground">{name}</span>
+          {controls}
+        </div>
+        <div className={cn("grid gap-1.5", showLink && "@md:grid-cols-2", !shown && "opacity-55")}>
           <Input
             aria-label={meta.link === "always" ? `${name} text` : name}
             value={contact.value}
@@ -204,15 +243,37 @@ function ContactRow({
             {showLink ? <UnlinkIcon className="size-4" /> : <LinkIcon className="size-4" />}
           </button>
         )}
-        <button
-          type="button"
-          aria-label={`Remove ${name}`}
-          title="Remove"
-          onClick={onRemove}
-          className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-        >
-          <Trash2Icon className="size-4" />
-        </button>
+        {menu ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <button
+                  type="button"
+                  aria-label={`${name} options`}
+                  className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground aria-expanded:bg-muted"
+                />
+              }
+            >
+              <MoreHorizontalIcon className="size-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {menu}
+              <DropdownMenuItem variant="destructive" onClick={onRemove}>
+                <Trash2Icon /> Remove
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <button
+            type="button"
+            aria-label={`Remove ${name}`}
+            title="Remove"
+            onClick={onRemove}
+            className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Trash2Icon className="size-4" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -299,7 +360,7 @@ function IconPicker({
             type="button"
             aria-label={`${fieldName} icon: ${CONTACT_ICON_LABELS[value]}. Change icon`}
             title="Change icon"
-            className="mt-5 flex size-8 shrink-0 items-center justify-center rounded-md border border-dashed border-foreground/25 text-foreground transition-colors hover:border-foreground/50 hover:bg-muted aria-expanded:border-primary aria-expanded:text-primary"
+            className="mt-6 flex size-8 shrink-0 items-center justify-center rounded-md border border-dashed border-foreground/25 text-foreground transition-colors hover:border-foreground/50 hover:bg-muted aria-expanded:border-primary aria-expanded:text-primary"
           />
         }
       >

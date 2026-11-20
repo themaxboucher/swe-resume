@@ -1,5 +1,6 @@
-import { boolean, index, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import type { CoverLetterContent, DocumentDesign, ResumeContent } from "@/lib/documents/schema";
+import type { VersionLayout } from "@/lib/documents/versions";
 
 // ---------- Better Auth tables ----------
 
@@ -74,13 +75,41 @@ export const resume = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    title: text("title").notNull(),
+    /** Shared text of every version. */
     content: jsonb("content").$type<ResumeContent>().notNull(),
-    design: jsonb("design").$type<DocumentDesign>().notNull(),
+    /** PDF file name for every version; empty means "<Name> - Resume". */
+    fileName: text("file_name").notNull().default(""),
+    /** Version the editor opens by default. */
+    lastVersionId: uuid("last_version_id"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  (table) => [index("resume_user_id_idx").on(table.userId, table.updatedAt)],
+  // One resume per user; tailoring happens in versions.
+  (table) => [uniqueIndex("resume_user_id_key").on(table.userId)],
+);
+
+/** A view over a user's resume: what it shows, in what order, and its design. */
+export const resumeVersion = pgTable(
+  "resume_version",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    resumeId: uuid("resume_id")
+      .notNull()
+      .references(() => resume.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    position: integer("position").notNull().default(0),
+    design: jsonb("design").$type<DocumentDesign>().notNull(),
+    layout: jsonb("layout").$type<VersionLayout>().notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("resume_version_resume_id_idx").on(table.resumeId, table.position),
+    index("resume_version_user_id_idx").on(table.userId),
+  ],
 );
 
 export const coverLetter = pgTable(

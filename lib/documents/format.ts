@@ -58,7 +58,7 @@ export function formatLongDate(value: string): string {
 }
 
 export function displayUrl(url: string): string {
-  return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  return url.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "");
 }
 
 export function hrefFor(url: string): string {

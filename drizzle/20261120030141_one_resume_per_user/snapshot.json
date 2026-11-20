@@ -1,0 +1,127 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "23e6b9fc-0c92-4daf-911f-0a89eb1e9800",
+  "prevIds": [
+    "6fec3a8e-a29d-408c-ad2d-a67f1cf89121"
+  ],
+  "footprints": [
+    {
+      "statementType": "drop_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "resume",
+        "resume_user_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.resume_user_id_idx",
+        "n|idx|public.resume_user_id_idx",
+        "e|idx|public.resume_user_id_idx",
+        "n|rel|public.resume_user_id_idx"
+      ],
+      "reads": [
+        "e|tbl|public.resume",
+        "n|sch|public",
+        "e|col|public.resume.user_id",
+        "e|col|public.resume.updated_at"
+      ],
+      "sharedWrites": []
+    },
+    {
+      "statementType": "drop_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "resume",
+        "title"
+      ],
+      "writes": [
+        "s|col|public.resume.title",
+        "n|col|public.resume.title",
+        "e|col|public.resume.title"
+      ],
+      "reads": [
+        "n|tbl|public.resume",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "drop_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "resume",
+        "design"
+      ],
+      "writes": [
+        "s|col|public.resume.design",
+        "n|col|public.resume.design",
+        "e|col|public.resume.design"
+      ],
+      "reads": [
+        "n|tbl|public.resume",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "resume",
+        "resume_user_id_key"
+      ],
+      "writes": [
+        "s|idx|public.resume_user_id_key",
+        "n|idx|public.resume_user_id_key",
+        "e|idx|public.resume_user_id_key",
+        "n|rel|public.resume_user_id_key"
+      ],
+      "reads": [
+        "n|tbl|public.resume",
+        "n|sch|public",
+        "n|col|public.resume.user_id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "resume",
+        "name": "resume_user_id_key",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "user_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"resume\",\"title\"]"
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"resume\",\"design\"]"
+    },
+    {
+      "op": "drop",
+      "key": "indexes\u0000[\"public\",\"resume_user_id_idx\"]"
+    }
+  ]
+}

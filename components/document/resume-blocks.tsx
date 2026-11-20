@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { displayUrl, formatDateRange, hrefFor } from "@/lib/documents/format";
-import type { DocumentDesign, Entry, ListSection, ResumeContent } from "@/lib/documents/schema";
+import type { DocumentDesign, Entry, LinkDisplay, ListSection, ResumeContent } from "@/lib/documents/schema";
 import { SECTION_CONFIG, defaultColumnFor } from "@/lib/documents/sections";
+import { applyLayout, contactLinkDisplays, type VersionLayout } from "@/lib/documents/versions";
 import { cn } from "@/lib/utils";
 import { DocumentHeader } from "./document-header";
 import { isRichTextEmpty, richTextChunks, type RichTextChunk } from "./rich-text";
@@ -38,8 +39,18 @@ function EntryHeading({ entry, section, design }: { entry: Entry; section: ListS
   const style = isEducation ? design.schoolStyle : design.employerStyle;
   const subtitleUrl = isEducation ? "" : entry.subtitleUrl;
   const inline = style.placement !== "below";
-  const title = entry.title && <span className="doc-entry-title">{entry.title}</span>;
-  const subtitle = entry.subtitle && (
+  const titleUrl = config.linkTitle ? entry.url : "";
+  const title = entry.title && (
+    <span
+      className={cn(
+        "doc-entry-title",
+        section.type === "projects" && design.underlineProjectLinks && "doc-entry-title--underline",
+      )}
+    >
+      {titleUrl ? <a href={hrefFor(titleUrl)}>{entry.title}</a> : entry.title}
+    </span>
+  );
+  const subtitle = config.fields.includes("subtitle") && entry.subtitle && (
     <span
       className={cn(
         "doc-entry-subtitle",
@@ -58,7 +69,8 @@ function EntryHeading({ entry, section, design }: { entry: Entry; section: ListS
   const meta = [
     trailing,
     entry.location,
-    entry.url && (
+    // Linked titles (projects) only spell out their URL when the version shows full URLs, e.g. for print.
+    (!config.linkTitle || design.linkDisplay === "url") && entry.url && (
       <a key="url" href={hrefFor(entry.url)}>
         {displayUrl(entry.url)}
       </a>
@@ -97,8 +109,6 @@ function hasEntryContent(entry: Entry) {
 }
 
 function sectionBlocks(section: ResumeContent["sections"][number], design: DocumentDesign): Block[] {
-  if (!section.visible) return [];
-
   if (section.type === "profile") {
     const chunks = richTextChunks(section.content, section.id);
     if (chunks.length === 0) return [];
@@ -117,7 +127,7 @@ function sectionBlocks(section: ResumeContent["sections"][number], design: Docum
     }));
   }
 
-  const entries = section.entries.filter((e) => e.visible && hasEntryContent(e));
+  const entries = section.entries.filter(hasEntryContent);
   if (entries.length === 0) return [];
   const compact = SECTION_CONFIG[section.type].compact;
 
@@ -161,7 +171,12 @@ function sectionBlocks(section: ResumeContent["sections"][number], design: Docum
   return blocks;
 }
 
-export function buildResumeBlocks(content: ResumeContent, design: DocumentDesign): DocumentBlocks {
+/** Lays out every section and entry of `content`, in order. */
+export function buildResumeBlocks(
+  content: ResumeContent,
+  design: DocumentDesign,
+  linkDisplays?: Record<string, LinkDisplay>,
+): DocumentBlocks {
   const main: Block[] = [];
   const sidebar: Block[] = [];
   for (const section of content.sections) {
@@ -169,5 +184,14 @@ export function buildResumeBlocks(content: ResumeContent, design: DocumentDesign
       design.columns === 2 ? (design.sectionColumns[section.id] ?? defaultColumnFor(section.type)) : "main";
     (column === "sidebar" ? sidebar : main).push(...sectionBlocks(section, design));
   }
-  return { header: <DocumentHeader personal={content.personal} design={design} />, main, sidebar };
+  return {
+    header: <DocumentHeader personal={content.personal} design={design} linkDisplays={linkDisplays} />,
+    main,
+    sidebar,
+  };
+}
+
+/** Lays out the resume as one version shows it. */
+export function buildVersionBlocks(content: ResumeContent, layout: VersionLayout, design: DocumentDesign): DocumentBlocks {
+  return buildResumeBlocks(applyLayout(content, layout), design, contactLinkDisplays(layout));
 }

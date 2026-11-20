@@ -28,7 +28,7 @@ export function EditorCard({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className={cn("rounded-xl bg-card shadow-card", className)}>
+    <div className={cn("rounded-xl bg-card shadow-panel", className)}>
       <div className="flex items-center gap-1 py-1.5 pr-2 pl-1.5">
         {leading}
         <button
@@ -38,7 +38,7 @@ export function EditorCard({
           className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 py-1.5 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
         >
           <span className="min-w-0 flex-1">
-            <span className={cn("block truncate text-sm font-semibold", muted && "text-muted-foreground line-through decoration-muted-foreground/40")}>
+            <span className={cn("block truncate text-sm font-semibold", muted && "text-muted-foreground")}>
               {title}
             </span>
             {subtitle && <span className="block truncate text-xs text-muted-foreground">{subtitle}</span>}

@@ -47,15 +47,21 @@ import { timeAgo } from "@/lib/time";
 export type GridItem = { id: string; title: string; updatedAt: Date; thumbnail: ReactNode };
 
 type DocumentGridProps = {
-  kind: "resume" | "cover-letter";
   noun: string;
   items: GridItem[] | undefined;
   isError: boolean;
   creating: boolean;
+  hrefFor: (id: string) => string;
+  downloadFor: (item: GridItem) => { url: string; fileName: string };
   onCreateBlank: () => void;
+  /** Replaces the default "blank or duplicate" chooser behind the New card. */
+  onNew?: () => void;
   onDuplicate: (id: string) => void;
   onRename: (id: string, title: string) => Promise<unknown>;
   onDelete: (id: string) => Promise<unknown>;
+  /** False hides Delete, e.g. for the last remaining version. */
+  canDelete?: boolean;
+  deleteDescription?: string;
   emptyIllustration: ReactNode;
 };
 
@@ -64,7 +70,8 @@ export function DocumentGrid(props: DocumentGridProps) {
   const [chooserOpen, setChooserOpen] = useState(false);
 
   const startCreate = () => {
-    if (items && items.length > 0) setChooserOpen(true);
+    if (props.onNew) props.onNew();
+    else if (items && items.length > 0) setChooserOpen(true);
     else props.onCreateBlank();
   };
 
@@ -90,7 +97,7 @@ export function DocumentGrid(props: DocumentGridProps) {
       <div className="dashed-panel flex flex-col items-center gap-5 bg-card/60 px-6 py-16 text-center">
         {props.emptyIllustration}
         <div className="flex flex-col gap-1.5">
-          <h2 className="font-display text-2xl">Start your first {noun}</h2>
+          <h2 className="font-display text-2xl font-semibold">Start your first {noun}</h2>
           <p className="max-w-sm text-sm text-muted-foreground">
             Fill in the form, watch it lay out on real pages, then download a PDF.
           </p>
@@ -105,6 +112,9 @@ export function DocumentGrid(props: DocumentGridProps) {
   return (
     <>
       <div className="grid grid-cols-2 gap-x-5 gap-y-7 sm:grid-cols-3 lg:grid-cols-4">
+        {items.map((item) => (
+          <DocumentCard key={item.id} item={item} {...props} />
+        ))}
         <button
           type="button"
           onClick={startCreate}
@@ -116,9 +126,6 @@ export function DocumentGrid(props: DocumentGridProps) {
           </span>
           <span className="text-sm font-semibold">New {noun}</span>
         </button>
-        {items.map((item) => (
-          <DocumentCard key={item.id} item={item} {...props} />
-        ))}
       </div>
       <CreateChooser
         open={chooserOpen}
@@ -138,8 +145,18 @@ export function DocumentGrid(props: DocumentGridProps) {
   );
 }
 
-function DocumentCard({ item, kind, noun, onDuplicate, onRename, onDelete }: { item: GridItem } & DocumentGridProps) {
-  const href = kind === "resume" ? `/resumes/${item.id}` : `/cover-letters/${item.id}`;
+function DocumentCard({
+  item,
+  noun,
+  hrefFor,
+  downloadFor,
+  onDuplicate,
+  onRename,
+  onDelete,
+  canDelete = true,
+  deleteDescription,
+}: { item: GridItem } & DocumentGridProps) {
+  const href = hrefFor(item.id);
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -147,12 +164,13 @@ function DocumentCard({ item, kind, noun, onDuplicate, onRename, onDelete }: { i
   const download = async () => {
     setDownloading(true);
     try {
-      const response = await fetch(`/api/pdf/${kind}/${item.id}`);
+      const { url: pdfUrl, fileName } = downloadFor(item);
+      const response = await fetch(pdfUrl);
       if (!response.ok) throw new Error(await response.text());
       const url = URL.createObjectURL(await response.blob());
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${item.title.replace(/[\\/:*?"<>|]+/g, "-")}.pdf`;
+      link.download = `${fileName.replace(/[\\/:*?"<>|]+/g, "-")}.pdf`;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch {
@@ -201,10 +219,14 @@ function DocumentCard({ item, kind, noun, onDuplicate, onRename, onDelete }: { i
             <DropdownMenuItem onClick={download} disabled={downloading}>
               <DownloadIcon /> Download PDF
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
-              <Trash2Icon /> Delete
-            </DropdownMenuItem>
+            {canDelete && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
+                  <Trash2Icon /> Delete
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -223,7 +245,7 @@ function DocumentCard({ item, kind, noun, onDuplicate, onRename, onDelete }: { i
           <AlertDialogHeader>
             <AlertDialogTitle>Delete “{item.title}”?</AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently deletes the {noun}. It can&apos;t be undone.
+              {deleteDescription ?? `This permanently deletes the ${noun}. It can't be undone.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -313,7 +335,7 @@ function CreateChooser({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-display text-2xl font-normal">New {noun}</DialogTitle>
+          <DialogTitle className="font-display text-2xl font-semibold">New {noun}</DialogTitle>
           <DialogDescription>Start fresh, or copy one you&apos;ve already written and tailor it.</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">

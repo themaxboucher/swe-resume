@@ -154,6 +154,7 @@ export function PagedDocument({
     "--doc-entry-title-size": `${design.fontSize + design.entryTitleSize}pt`,
     "--doc-line-height": design.lineHeight,
     "--doc-accent": design.accentColor,
+    "--doc-muted": design.mutedTextColor,
   } as CSSProperties;
 
   const renderColumn = (columnBlocks: Block[], keys: string[] | undefined, pageIndex: number, hasHeader: boolean) => {

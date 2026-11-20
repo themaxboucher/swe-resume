@@ -2,23 +2,25 @@
 
 import { useMemo } from "react";
 import type { CoverLetterContent, DocumentDesign, ResumeContent } from "@/lib/documents/schema";
+import type { VersionLayout } from "@/lib/documents/versions";
 import { buildCoverLetterBlocks } from "./cover-letter-blocks";
 import { PagedDocument } from "./paged-document";
-import { buildResumeBlocks } from "./resume-blocks";
+import { buildVersionBlocks } from "./resume-blocks";
 import { PAGE_SIZES } from "./types";
 
 type Props =
-  | { kind: "resume"; content: ResumeContent; design: DocumentDesign }
+  | { kind: "resume"; content: ResumeContent; layout: VersionLayout; design: DocumentDesign }
   | { kind: "cover-letter"; content: CoverLetterContent; design: DocumentDesign };
 
 /** Renders a document exactly as the editor preview does, at 1:1, for headless Chromium to print. */
 export function PrintView(props: Props) {
+  const layout = props.kind === "resume" ? props.layout : null;
   const blocks = useMemo(
     () =>
       props.kind === "resume"
-        ? buildResumeBlocks(props.content, props.design)
+        ? buildVersionBlocks(props.content, layout!, props.design)
         : buildCoverLetterBlocks(props.content, props.design),
-    [props.kind, props.content, props.design],
+    [props.kind, props.content, props.design, layout],
   );
   const page = PAGE_SIZES[props.design.pageSize];
 

@@ -94,14 +94,13 @@ function migrateLegacyPersonal(input: unknown) {
     { id: "location", type: "location", value: text("location"), url: "", icon: "map-pin" },
     { id: "website", type: "website", value: "", url: text("website"), icon: "link" },
   ];
-  return { name: legacy.name, headline: legacy.headline, contacts };
+  return { name: legacy.name, contacts };
 }
 
 export const personalDetailsSchema = z.preprocess(
   migrateLegacyPersonal,
   z.object({
     name: short,
-    headline: short,
     contacts: z.array(contactFieldSchema).max(30).default([]),
   }),
 );
@@ -124,7 +123,6 @@ export type SectionType = "profile" | ListSectionType;
 
 export const entrySchema = z.object({
   id,
-  visible: z.boolean().default(true),
   title: short,
   subtitle: short,
   /** Optional link for the subtitle (employer, school, issuer…). */
@@ -145,7 +143,6 @@ const profileSectionSchema = z.object({
   id,
   type: z.literal("profile"),
   title: short,
-  visible: z.boolean().default(true),
   content: richTextSchema.default(null),
 });
 
@@ -153,7 +150,6 @@ const listSectionSchema = z.object({
   id,
   type: z.enum(LIST_SECTION_TYPES),
   title: short,
-  visible: z.boolean().default(true),
   entries: z.array(entrySchema).max(100).default([]),
 });
 
@@ -261,6 +257,10 @@ function migrateLegacyDesign(input: unknown) {
   return { ...rest, contactStyle };
 }
 
+/** How linked contacts and project links read: a short label ("LinkedIn") or the spelled-out URL, for print. */
+export const LINK_DISPLAYS = ["label", "url"] as const;
+export type LinkDisplay = (typeof LINK_DISPLAYS)[number];
+
 export const DATE_FORMATS = ["MM/YYYY", "MMM YYYY", "MMMM YYYY", "YYYY"] as const;
 export type DateFormat = (typeof DATE_FORMATS)[number];
 
@@ -272,6 +272,11 @@ export const designSchema = z.preprocess(
       .string()
       .regex(/^#[0-9a-fA-F]{6}$/)
       .default("#0084d1"),
+    /** Secondary text: contact details, dates, locations and sidebar details. */
+    mutedTextColor: z
+      .string()
+      .regex(/^#[0-9a-fA-F]{6}$/)
+      .catch("#555555"),
     fontFamily: z.enum(FONT_IDS).default("inter"),
     fontSize: z.number().min(8).max(13).default(10),
     // Sizes below are offsets in pt from the base font size.
@@ -293,10 +298,13 @@ export const designSchema = z.preprocess(
     contactStyle: z.enum([...CONTACT_SEPARATORS, ...CONTACT_ICON_STYLES]).catch("dot"),
     contactIconColor: z.enum(["text", "accent"]).catch("text"),
     underlineContactLinks: z.boolean().catch(false),
-    /** Employer line of experience entries (also projects, certifications and custom sections). */
+    linkDisplay: z.enum(LINK_DISPLAYS).catch("label"),
+    /** Employer line of experience entries (also certifications and custom sections). */
     employerStyle: subtitleStyleSchema,
     /** School line of education entries. */
     schoolStyle: subtitleStyleSchema,
+    /** Underline project names that have a link. */
+    underlineProjectLinks: z.boolean().catch(false),
     sectionColumns: z.record(z.string(), z.enum(["main", "sidebar"])).default({}),
     pageSize: z.enum(["A4", "LETTER"]).default("A4"),
     dateFormat: z.enum(DATE_FORMATS).default("MMM YYYY"),

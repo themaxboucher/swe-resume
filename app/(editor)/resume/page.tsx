@@ -5,15 +5,15 @@ import { ResumeEditor } from "@/components/editor/resume-editor";
 
 export const metadata: Metadata = { title: "Edit resume" };
 
-async function Editor({ params }: { params: PageProps<"/resumes/[id]">["params"] }) {
-  const { id } = await params;
-  return <ResumeEditor id={id} />;
+async function Editor({ searchParams }: { searchParams: PageProps<"/resume">["searchParams"] }) {
+  const { v } = await searchParams;
+  return <ResumeEditor versionId={typeof v === "string" ? v : undefined} />;
 }
 
-export default function ResumeEditorPage({ params }: PageProps<"/resumes/[id]">) {
+export default function ResumeEditorPage({ searchParams }: PageProps<"/resume">) {
   return (
     <Suspense fallback={<EditorSkeleton />}>
-      <Editor params={params} />
+      <Editor searchParams={searchParams} />
     </Suspense>
   );
 }

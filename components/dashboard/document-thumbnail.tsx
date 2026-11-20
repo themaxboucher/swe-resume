@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildCoverLetterBlocks } from "@/components/document/cover-letter-blocks";
 import { PagedDocument } from "@/components/document/paged-document";
-import { buildResumeBlocks } from "@/components/document/resume-blocks";
+import { buildVersionBlocks } from "@/components/document/resume-blocks";
 import { pageDimensions } from "@/components/document/types";
 import type { CoverLetterContent, DocumentDesign, ResumeContent } from "@/lib/documents/schema";
+import type { VersionLayout } from "@/lib/documents/versions";
 
 type Props =
-  | { kind: "resume"; content: ResumeContent; design: DocumentDesign }
+  | { kind: "resume"; content: ResumeContent; layout: VersionLayout; design: DocumentDesign }
   | { kind: "cover-letter"; content: CoverLetterContent; design: DocumentDesign };
 
 /** First page of a document, scaled to the card width. */
@@ -23,12 +24,13 @@ export function DocumentThumbnail(props: Props) {
     return () => observer.disconnect();
   }, []);
 
+  const layout = props.kind === "resume" ? props.layout : null;
   const blocks = useMemo(
     () =>
       props.kind === "resume"
-        ? buildResumeBlocks(props.content, props.design)
+        ? buildVersionBlocks(props.content, layout!, props.design)
         : buildCoverLetterBlocks(props.content, props.design),
-    [props.kind, props.content, props.design],
+    [props.kind, props.content, props.design, layout],
   );
   const dims = pageDimensions(props.design.pageSize);
 

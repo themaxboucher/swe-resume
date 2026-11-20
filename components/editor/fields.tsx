@@ -76,6 +76,7 @@ export function LinkableTextField({
   onUrlChange,
   placeholder,
   urlPlaceholder = "https://…",
+  className,
 }: {
   label: string;
   value: string;
@@ -84,6 +85,7 @@ export function LinkableTextField({
   onUrlChange: (url: string) => void;
   placeholder?: string;
   urlPlaceholder?: string;
+  className?: string;
 }) {
   const id = useId();
   const [linkOpen, setLinkOpen] = useState(false);
@@ -92,6 +94,7 @@ export function LinkableTextField({
     <Field
       label={label}
       htmlFor={id}
+      className={className}
       action={
         <button
           type="button"

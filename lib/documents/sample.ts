@@ -17,7 +17,6 @@ const paragraph = (text: string): RichText => ({
 });
 
 const entry = (e: Partial<Entry> & { id: string }): Entry => ({
-  visible: true,
   title: "",
   subtitle: "",
   subtitleUrl: "",
@@ -36,7 +35,6 @@ const entry = (e: Partial<Entry> & { id: string }): Entry => ({
 export const SAMPLE_RESUME: ResumeContent = {
   personal: {
     name: "Camille Fortin",
-    headline: "Senior Product Engineer",
     contacts: [
       { id: "email", type: "email", value: "camille@fortin.dev", url: "", icon: "mail" },
       { id: "phone", type: "phone", value: "+1 514 555 0142", url: "", icon: "phone" },
@@ -49,7 +47,6 @@ export const SAMPLE_RESUME: ResumeContent = {
       id: "profile",
       type: "profile",
       title: "Profile",
-      visible: true,
       content: paragraph(
         "Product-minded engineer with eight years building collaborative web apps. I ship end-to-end features, from schema to pixel, and care about fast, accessible interfaces.",
       ),
@@ -58,7 +55,6 @@ export const SAMPLE_RESUME: ResumeContent = {
       id: "experience",
       type: "experience",
       title: "Experience",
-      visible: true,
       entries: [
         entry({
           id: "e1",
@@ -91,7 +87,6 @@ export const SAMPLE_RESUME: ResumeContent = {
       id: "education",
       type: "education",
       title: "Education",
-      visible: true,
       entries: [
         entry({
           id: "ed1",
@@ -106,7 +101,6 @@ export const SAMPLE_RESUME: ResumeContent = {
       id: "skills",
       type: "skills",
       title: "Skills",
-      visible: true,
       entries: [
         entry({ id: "s1", title: "Languages", level: "TypeScript, Go, SQL" }),
         entry({ id: "s2", title: "Frontend", level: "React, Next.js, CSS" }),
@@ -117,7 +111,6 @@ export const SAMPLE_RESUME: ResumeContent = {
       id: "languages",
       type: "languages",
       title: "Languages",
-      visible: true,
       entries: [
         entry({ id: "l1", title: "French", level: "Native" }),
         entry({ id: "l2", title: "English", level: "Fluent" }),
