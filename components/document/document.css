@@ -155,7 +155,7 @@
   border-bottom: 1px solid #e2e2e2;
   font-size: var(--doc-heading-size, 0.8em) !important;
   font-weight: 700 !important;
-  letter-spacing: var(--doc-heading-tracking, 0.13em);
+  letter-spacing: var(--doc-heading-tracking, 0.08em);
   text-transform: uppercase;
   color: var(--doc-accent);
 }
@@ -241,9 +241,28 @@ ol.doc-rt,
 .doc-rt ol {
   padding-left: 1.15em;
 }
+/* Bullets are drawn here, not by list-style: Chromium sizes and places native disc markers in whole
+   pixels from platform font metrics, so they sat differently in the preview and the Linux-rendered PDF. */
 ul.doc-rt,
 .doc-rt ul {
-  list-style-type: disc;
+  list-style: none;
+}
+:is(ul.doc-rt, .doc-rt ul) > li > p:first-child::before {
+  /* Whole pixels: Chromium snaps each box edge to a pixel, so a fractional size could come out
+     one pixel taller than wide (an oval). */
+  --bullet-size: round(0.36em, 1px);
+  /* Text starts 1.3em in (list padding + item padding). The bullet sits at the list's left edge,
+     nudged in to line up with the ink of the title and company above. */
+  --bullet-to-text: calc(1.3em - 0.03em);
+  content: "";
+  display: inline-block;
+  width: var(--bullet-size);
+  height: var(--bullet-size);
+  /* Pulled back into the list's indent; the margins cancel out so the text doesn't move. */
+  margin-inline: calc(-1 * var(--bullet-to-text)) calc(var(--bullet-to-text) - var(--bullet-size));
+  border-radius: 50%;
+  background: var(--doc-accent);
+  vertical-align: middle;
 }
 ol.doc-rt,
 .doc-rt ol {

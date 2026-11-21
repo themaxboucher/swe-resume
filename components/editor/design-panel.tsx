@@ -19,6 +19,7 @@ import { FONT_OPTIONS } from "@/lib/documents/fonts";
 import {
   CONTACT_ICON_STYLES,
   DATE_FORMATS,
+  HEADING_LETTER_SPACING_MAX,
   isIconStyle,
   SUBTITLE_PLACEMENTS,
   type SubtitleStyle,
@@ -598,7 +599,7 @@ export function DesignPanel({
               label="Section heading letter spacing"
               value={design.headingLetterSpacing}
               min={0}
-              max={0.3}
+              max={HEADING_LETTER_SPACING_MAX}
               step={0.01}
               format={(v) => `${v.toFixed(2)} em`}
               onChange={(v) => set("headingLetterSpacing", v)}

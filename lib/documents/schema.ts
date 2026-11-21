@@ -264,6 +264,13 @@ export type LinkDisplay = (typeof LINK_DISPLAYS)[number];
 export const DATE_FORMATS = ["MM/YYYY", "MMM YYYY", "MMMM YYYY", "YYYY"] as const;
 export type DateFormat = (typeof DATE_FORMATS)[number];
 
+/**
+ * Widest section heading letter spacing, in em. PDFs store letter spacing as gaps between
+ * letters, and text extractors read gaps above about 0.1em as spaces ("E X P E R I E N C E"),
+ * which hides section names from ATS parsers. This leaves headroom under that.
+ */
+export const HEADING_LETTER_SPACING_MAX = 0.08;
+
 /** Every design setting, without the migration of older saved shapes (see `designSchema`). */
 export const designObjectSchema = z.object({
   templateId: z.enum(["classic"]).default("classic"),
@@ -281,8 +288,8 @@ export const designObjectSchema = z.object({
   // Sizes below are offsets in pt from the base font size.
   nameSize: z.number().min(4).max(18).default(12),
   headingSize: z.number().min(-3).max(4).default(-2),
-  /** Section heading letter spacing, in em. */
-  headingLetterSpacing: z.number().min(0).max(0.3).catch(0.13),
+  /** Section heading letter spacing, in em. Wider saved values fall back to the max. */
+  headingLetterSpacing: z.number().min(0).max(HEADING_LETTER_SPACING_MAX).catch(HEADING_LETTER_SPACING_MAX),
   entryTitleSize: z.number().min(-1).max(4).default(0),
   lineHeight: z.number().min(1.1).max(1.8).default(1.4),
   marginX: z.number().min(8).max(30).default(16),
