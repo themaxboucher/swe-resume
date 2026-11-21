@@ -5,11 +5,9 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   // Headless Chromium must not be bundled; it is loaded at runtime by the PDF route.
   serverExternalPackages: ["puppeteer", "puppeteer-core", "@sparticuz/chromium"],
+  // Keys are globs, so the route's literal brackets must be escaped.
   outputFileTracingIncludes: {
-    "/api/pdf/[kind]/[id]": ["./node_modules/@sparticuz/chromium/bin/**"],
-  },
-  outputFileTracingExcludes: {
-    "/api/pdf/[kind]/[id]": ["./node_modules/puppeteer/**"],
+    "/api/pdf/\\[kind\\]/\\[id\\]": ["./node_modules/@sparticuz/chromium/bin/**"],
   },
   turbopack: {
     rules: {
