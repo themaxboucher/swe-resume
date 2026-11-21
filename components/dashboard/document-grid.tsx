@@ -62,7 +62,6 @@ type DocumentGridProps = {
   /** False hides Delete, e.g. for the last remaining version. */
   canDelete?: boolean;
   deleteDescription?: string;
-  emptyIllustration: ReactNode;
 };
 
 export function DocumentGrid(props: DocumentGridProps) {
@@ -88,23 +87,6 @@ export function DocumentGrid(props: DocumentGridProps) {
             <Skeleton className="h-4 w-2/3" />
           </div>
         ))}
-      </div>
-    );
-  }
-
-  if (items.length === 0) {
-    return (
-      <div className="dashed-panel flex flex-col items-center gap-5 bg-card/60 px-6 py-16 text-center">
-        {props.emptyIllustration}
-        <div className="flex flex-col gap-1.5">
-          <h2 className="font-display text-2xl font-semibold">Start your first {noun}</h2>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            Fill in the form, watch it lay out on real pages, then download a PDF.
-          </p>
-        </div>
-        <Button size="lg" onClick={props.onCreateBlank} disabled={creating}>
-          {creating ? <Loader2Icon className="animate-spin" /> : <PlusIcon />} Create {noun}
-        </Button>
       </div>
     );
   }

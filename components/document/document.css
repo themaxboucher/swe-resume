@@ -41,7 +41,7 @@
 }
 .doc-header--divider {
   padding-bottom: 0.85em;
-  border-bottom: 2px solid var(--doc-accent);
+  border-bottom: 1.5px solid var(--doc-accent);
 }
 .doc-root[data-header-align="center"] .doc-header {
   text-align: center;

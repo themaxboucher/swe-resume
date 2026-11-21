@@ -10,7 +10,6 @@ import { useTRPC } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { DocumentGrid } from "./document-grid";
 import { DocumentThumbnail } from "./document-thumbnail";
-import { CoverLetterIllustration, ResumeIllustration } from "./illustrations";
 
 type Tab = "resumes" | "cover-letters";
 
@@ -31,12 +30,7 @@ export function Dashboard() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 sm:py-14">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex flex-col gap-2">
-          <h1 className="font-display text-4xl sm:text-5xl">Your documents</h1>
-          <p className="text-muted-foreground">
-            One resume, a version for every kind of role. Each version picks what it shows and how it looks.
-          </p>
-        </div>
+        <h1 className="font-display text-3xl sm:text-4xl">Your documents</h1>
         <div role="tablist" aria-label="Document type" className="flex gap-1.5">
           {tabs.map((t) => (
             <button
@@ -117,7 +111,6 @@ function ResumeVersions() {
         onDelete={(id) => remove.mutateAsync({ id })}
         canDelete={(data?.versions.length ?? 0) > 1}
         deleteDescription="Your resume's text stays. Only this version's choices of what to show, its order and its design are removed."
-        emptyIllustration={<ResumeIllustration />}
       />
       {data && (
         <NewVersionDialog
@@ -177,7 +170,6 @@ function CoverLetters() {
       onDuplicate={(id) => duplicate.mutate({ id })}
       onRename={(id, title) => update.mutateAsync({ id, title })}
       onDelete={(id) => remove.mutateAsync({ id })}
-      emptyIllustration={<CoverLetterIllustration />}
     />
   );
 }

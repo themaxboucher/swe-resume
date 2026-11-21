@@ -277,7 +277,7 @@ export const designSchema = z.preprocess(
       .string()
       .regex(/^#[0-9a-fA-F]{6}$/)
       .catch("#555555"),
-    fontFamily: z.enum(FONT_IDS).default("inter"),
+    fontFamily: z.enum(FONT_IDS).default("source-serif"),
     fontSize: z.number().min(8).max(13).default(10),
     // Sizes below are offsets in pt from the base font size.
     nameSize: z.number().min(4).max(18).default(12),
@@ -293,7 +293,7 @@ export const designSchema = z.preprocess(
     columns: z.union([z.literal(1), z.literal(2)]).default(1),
     sidebarSide: z.enum(["left", "right"]).default("right"),
     sidebarWidth: z.number().min(25).max(45).default(32),
-    headerAlign: z.enum(["left", "center"]).default("left"),
+    headerAlign: z.enum(["left", "center"]).default("center"),
     headerDivider: z.boolean().default(true),
     /** Space between the name and the contact details, in px. */
     headerSpacing: z.number().min(0).max(24).catch(7),
