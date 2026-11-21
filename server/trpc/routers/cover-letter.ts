@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { coverLetter } from "@/lib/db/schema";
-import { blankCoverLetterContent, defaultDesign } from "@/lib/documents/defaults";
+import { blankCoverLetterContent, defaultCoverLetterDesign } from "@/lib/documents/defaults";
 import { coverLetterContentSchema, designSchema, titleSchema } from "@/lib/documents/schema";
 import { createTRPCRouter, protectedProcedure } from "../init";
 
@@ -44,7 +44,7 @@ export const coverLetterRouter = createTRPCRouter({
           userId: ctx.user.id,
           title: input.title ?? "Untitled cover letter",
           content: blankCoverLetterContent({ name: ctx.user.name, email: ctx.user.email }),
-          design: defaultDesign({ fontFamily: "source-serif", fontSize: 10.5, marginX: 22, marginY: 20 }),
+          design: defaultCoverLetterDesign(),
         })
         .returning({ id: coverLetter.id });
       return row;
@@ -75,17 +75,26 @@ export const coverLetterRouter = createTRPCRouter({
         title: titleSchema.optional(),
         content: coverLetterContentSchema.optional(),
         design: designSchema.optional(),
+        /** The `updatedAt` this save builds on. A different saved value means someone else changed it. */
+        baseUpdatedAt: z.date().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...changes } = input;
-      const [row] = await ctx.db
-        .update(coverLetter)
-        .set({ ...changes, updatedAt: new Date() })
-        .where(and(eq(coverLetter.id, id), eq(coverLetter.userId, ctx.user.id)))
-        .returning({ id: coverLetter.id, updatedAt: coverLetter.updatedAt });
-      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
-      return row;
+      const { id, baseUpdatedAt, ...changes } = input;
+      return ctx.db.transaction(async (tx) => {
+        const owned = and(eq(coverLetter.id, id), eq(coverLetter.userId, ctx.user.id));
+        const [current] = await tx.select({ updatedAt: coverLetter.updatedAt }).from(coverLetter).where(owned).for("update");
+        if (!current) throw new TRPCError({ code: "NOT_FOUND" });
+        if (baseUpdatedAt && current.updatedAt.getTime() !== baseUpdatedAt.getTime()) {
+          throw new TRPCError({ code: "CONFLICT", message: "The cover letter was changed somewhere else." });
+        }
+        const [row] = await tx
+          .update(coverLetter)
+          .set({ ...changes, updatedAt: new Date() })
+          .where(owned)
+          .returning({ id: coverLetter.id, updatedAt: coverLetter.updatedAt });
+        return row;
+      });
     }),
 
   delete: protectedProcedure.input(idInput).mutation(async ({ ctx, input }) => {

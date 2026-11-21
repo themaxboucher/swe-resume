@@ -264,54 +264,54 @@ export type LinkDisplay = (typeof LINK_DISPLAYS)[number];
 export const DATE_FORMATS = ["MM/YYYY", "MMM YYYY", "MMMM YYYY", "YYYY"] as const;
 export type DateFormat = (typeof DATE_FORMATS)[number];
 
-export const designSchema = z.preprocess(
-  migrateLegacyDesign,
-  z.object({
-    templateId: z.enum(["classic"]).default("classic"),
-    accentColor: z
-      .string()
-      .regex(/^#[0-9a-fA-F]{6}$/)
-      .default("#0084d1"),
-    /** Secondary text: contact details, dates, locations and sidebar details. */
-    mutedTextColor: z
-      .string()
-      .regex(/^#[0-9a-fA-F]{6}$/)
-      .catch("#555555"),
-    fontFamily: z.enum(FONT_IDS).default("source-serif"),
-    fontSize: z.number().min(8).max(13).default(10),
-    // Sizes below are offsets in pt from the base font size.
-    nameSize: z.number().min(4).max(18).default(12),
-    headingSize: z.number().min(-3).max(4).default(-2),
-    /** Section heading letter spacing, in em. */
-    headingLetterSpacing: z.number().min(0).max(0.3).catch(0.13),
-    entryTitleSize: z.number().min(-1).max(4).default(0),
-    lineHeight: z.number().min(1.1).max(1.8).default(1.4),
-    marginX: z.number().min(8).max(30).default(16),
-    marginY: z.number().min(8).max(30).default(14),
-    sectionSpacing: z.number().min(4).max(36).default(16),
-    entrySpacing: z.number().min(0).max(24).default(8),
-    columns: z.union([z.literal(1), z.literal(2)]).default(1),
-    sidebarSide: z.enum(["left", "right"]).default("right"),
-    sidebarWidth: z.number().min(25).max(45).default(32),
-    headerAlign: z.enum(["left", "center"]).default("center"),
-    headerDivider: z.boolean().default(true),
-    /** Space between the name and the contact details, in px. */
-    headerSpacing: z.number().min(0).max(24).catch(7),
-    contactStyle: z.enum([...CONTACT_SEPARATORS, ...CONTACT_ICON_STYLES]).catch("dot"),
-    contactIconColor: z.enum(["text", "accent"]).catch("text"),
-    underlineContactLinks: z.boolean().catch(false),
-    linkDisplay: z.enum(LINK_DISPLAYS).catch("label"),
-    /** Employer line of experience entries (also certifications and custom sections). */
-    employerStyle: subtitleStyleSchema,
-    /** School line of education entries. */
-    schoolStyle: subtitleStyleSchema,
-    /** Underline project names that have a link. */
-    underlineProjectLinks: z.boolean().catch(false),
-    sectionColumns: z.record(z.string(), z.enum(["main", "sidebar"])).default({}),
-    pageSize: z.enum(["A4", "LETTER"]).default("A4"),
-    dateFormat: z.enum(DATE_FORMATS).default("MMM YYYY"),
-  }),
-);
+/** Every design setting, without the migration of older saved shapes (see `designSchema`). */
+export const designObjectSchema = z.object({
+  templateId: z.enum(["classic"]).default("classic"),
+  accentColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .default("#0084d1"),
+  /** Secondary text: contact details, dates, locations and sidebar details. */
+  mutedTextColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .catch("#555555"),
+  fontFamily: z.enum(FONT_IDS).default("source-serif"),
+  fontSize: z.number().min(8).max(13).default(10),
+  // Sizes below are offsets in pt from the base font size.
+  nameSize: z.number().min(4).max(18).default(12),
+  headingSize: z.number().min(-3).max(4).default(-2),
+  /** Section heading letter spacing, in em. */
+  headingLetterSpacing: z.number().min(0).max(0.3).catch(0.13),
+  entryTitleSize: z.number().min(-1).max(4).default(0),
+  lineHeight: z.number().min(1.1).max(1.8).default(1.4),
+  marginX: z.number().min(8).max(30).default(16),
+  marginY: z.number().min(8).max(30).default(14),
+  sectionSpacing: z.number().min(4).max(36).default(16),
+  entrySpacing: z.number().min(0).max(24).default(8),
+  columns: z.union([z.literal(1), z.literal(2)]).default(1),
+  sidebarSide: z.enum(["left", "right"]).default("right"),
+  sidebarWidth: z.number().min(25).max(45).default(32),
+  headerAlign: z.enum(["left", "center"]).default("center"),
+  headerDivider: z.boolean().default(true),
+  /** Space between the name and the contact details, in px. */
+  headerSpacing: z.number().min(0).max(24).catch(7),
+  contactStyle: z.enum([...CONTACT_SEPARATORS, ...CONTACT_ICON_STYLES]).catch("dot"),
+  contactIconColor: z.enum(["text", "accent"]).catch("text"),
+  underlineContactLinks: z.boolean().catch(false),
+  linkDisplay: z.enum(LINK_DISPLAYS).catch("label"),
+  /** Employer line of experience entries (also certifications and custom sections). */
+  employerStyle: subtitleStyleSchema,
+  /** School line of education entries. */
+  schoolStyle: subtitleStyleSchema,
+  /** Underline project names that have a link. */
+  underlineProjectLinks: z.boolean().catch(false),
+  sectionColumns: z.record(z.string(), z.enum(["main", "sidebar"])).default({}),
+  pageSize: z.enum(["A4", "LETTER"]).default("A4"),
+  dateFormat: z.enum(DATE_FORMATS).default("MMM YYYY"),
+});
+
+export const designSchema = z.preprocess(migrateLegacyDesign, designObjectSchema);
 export type DocumentDesign = z.infer<typeof designSchema>;
 
 export const titleSchema = z.string().trim().min(1).max(120);

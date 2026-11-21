@@ -162,3 +162,52 @@ export function useAutosave<T, S extends Record<string, unknown>>(
 
   return { status, flush: () => flushRef.current() };
 }
+
+// ---------- Changes made elsewhere ----------
+
+/** Whether a failed save was refused because the document changed since this editor loaded it. */
+export function isConflict(error: unknown) {
+  return (error as { data?: { code?: string } } | null)?.data?.code === "CONFLICT";
+}
+
+/**
+ * Keeps an open editor in step with saves made elsewhere: another tab, or an AI app working through MCP.
+ * Whenever the tab comes back into focus with nothing unsaved, it asks for the latest save and hands it to
+ * `onNewer` when that save is newer than the one this editor builds on (`base`).
+ */
+export function useOutsideChanges<T extends { updatedAt: Date }>(
+  status: SaveStatus,
+  base: { readonly current: Date },
+  fetchLatest: () => Promise<T>,
+  onNewer: (latest: T) => void,
+) {
+  const latest = useRef({ status, fetchLatest, onNewer });
+  useEffect(() => {
+    latest.current = { status, fetchLatest, onNewer };
+  });
+
+  useEffect(() => {
+    let checking = false;
+    const check = async () => {
+      if (checking || document.visibilityState !== "visible" || latest.current.status !== "saved") return;
+      checking = true;
+      try {
+        const saved = await latest.current.fetchLatest();
+        // Typing while the check ran means the next save decides (and reloads on a conflict).
+        if (latest.current.status === "saved" && saved.updatedAt.getTime() !== base.current.getTime()) {
+          latest.current.onNewer(saved);
+        }
+      } catch {
+        // Offline or signed out: the next save reports it.
+      } finally {
+        checking = false;
+      }
+    };
+    window.addEventListener("focus", check);
+    document.addEventListener("visibilitychange", check);
+    return () => {
+      window.removeEventListener("focus", check);
+      document.removeEventListener("visibilitychange", check);
+    };
+  }, [base]);
+}

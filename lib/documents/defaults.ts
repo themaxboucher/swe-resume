@@ -14,6 +14,11 @@ export function defaultDesign(overrides: Partial<DocumentDesign> = {}): Document
   return designSchema.parse(overrides);
 }
 
+/** New cover letters read as a letter: a little larger type and wider margins than a resume. */
+export function defaultCoverLetterDesign(): DocumentDesign {
+  return defaultDesign({ fontFamily: "source-serif", fontSize: 10.5, marginX: 22, marginY: 20 });
+}
+
 type PersonalSeed = { name?: string; email?: string };
 
 export function emptyPersonal({ name = "", email = "" }: PersonalSeed = {}): PersonalDetails {

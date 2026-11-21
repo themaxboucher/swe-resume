@@ -1,6 +1,7 @@
 "use client";
 
-import { LogOutIcon, MailWarningIcon } from "lucide-react";
+import { LogOutIcon, MailWarningIcon, SettingsIcon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -63,6 +64,9 @@ function UserMenu() {
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
+        <DropdownMenuItem render={<Link href="/settings" />}>
+          <SettingsIcon /> Settings
+        </DropdownMenuItem>
         <DropdownMenuItem
           onClick={async () => {
             await signOut();

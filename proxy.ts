@@ -10,7 +10,9 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (AUTH_PAGES.includes(pathname)) {
-    return hasSession ? NextResponse.redirect(new URL("/dashboard", request.url)) : NextResponse.next();
+    // During an app's OAuth sign-in the session cookie may be stale; let the page continue the flow.
+    const oauthSignIn = request.nextUrl.searchParams.has("sig");
+    return hasSession && !oauthSignIn ? NextResponse.redirect(new URL("/dashboard", request.url)) : NextResponse.next();
   }
 
   if (!hasSession) {
@@ -22,5 +24,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/resume/:path*", "/cover-letters/:path*", "/login", "/signup"],
+  matcher: ["/dashboard/:path*", "/resume/:path*", "/cover-letters/:path*", "/settings/:path*", "/login", "/signup"],
 };

@@ -16,6 +16,20 @@ function useNextPath() {
   return next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
 }
 
+/**
+ * The query string when this page is part of an app's OAuth sign-in (Claude, ChatGPT…), or "". It is kept
+ * when switching between sign in and sign up so the authorization can continue afterwards.
+ */
+function useOAuthSearch() {
+  const params = useSearchParams();
+  return params.has("sig") && params.has("client_id") ? `?${params.toString()}` : "";
+}
+
+/** After an OAuth sign-in the auth client is already navigating back into the authorization flow. */
+function isOAuthRedirect(data: unknown) {
+  return typeof data === "object" && data !== null && "redirect" in data && data.redirect === true && "url" in data;
+}
+
 function Heading({ title, subtitle }: { title: string; subtitle: ReactNode }) {
   return (
     <div className="mb-7 flex flex-col gap-2">
@@ -79,11 +93,13 @@ function useSubmit(action: () => Promise<string | null | void>) {
 export function LoginForm({ providers }: { providers: SocialProviders }) {
   const router = useRouter();
   const next = useNextPath();
+  const oauthSearch = useOAuthSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { pending, error, onSubmit } = useSubmit(async () => {
-    const { error } = await signIn.email({ email, password });
+    const { data, error } = await signIn.email({ email, password });
     if (error) return error.message ?? "Invalid email or password.";
+    if (isOAuthRedirect(data)) return;
     router.push(next);
     router.refresh();
   });
@@ -95,7 +111,7 @@ export function LoginForm({ providers }: { providers: SocialProviders }) {
             subtitle={
           <>
                 New here?{" "}
-                <Link href="/signup" className="font-semibold text-primary hover:underline">
+                <Link href={`/signup${oauthSearch}`} className="font-semibold text-primary hover:underline">
                   Create an account
                 </Link>
           </>
@@ -153,12 +169,14 @@ export function LoginForm({ providers }: { providers: SocialProviders }) {
 
 export function SignupForm({ providers }: { providers: SocialProviders }) {
   const router = useRouter();
+  const oauthSearch = useOAuthSearch();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { pending, error, onSubmit } = useSubmit(async () => {
-    const { error } = await signUp.email({ name, email, password, callbackURL: "/dashboard" });
+    const { data, error } = await signUp.email({ name, email, password, callbackURL: "/dashboard" });
     if (error) return error.message ?? "Couldn't create your account.";
+    if (isOAuthRedirect(data)) return;
     router.push("/dashboard");
     router.refresh();
   });
@@ -170,7 +188,7 @@ export function SignupForm({ providers }: { providers: SocialProviders }) {
             subtitle={
           <>
                 Already have one?{" "}
-                <Link href="/login" className="font-semibold text-primary hover:underline">
+                <Link href={`/login${oauthSearch}`} className="font-semibold text-primary hover:underline">
                   Sign in
                 </Link>
           </>

@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { inferRouterOutputs } from "@trpc/server";
 import { CheckIcon, CopyIcon } from "lucide-react";
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { buildVersionBlocks } from "@/components/document/resume-blocks";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import { useTRPC } from "@/lib/trpc/client";
 import type { AppRouter } from "@/server/trpc/router";
 import { cn } from "@/lib/utils";
 import { DesignPanel } from "./design-panel";
-import { useAutosave } from "./document-store";
+import { isConflict, useAutosave, useOutsideChanges } from "./document-store";
 import { EditorShell, PreviewPane } from "./editor-shell";
 import { EditorError, EditorSkeleton } from "./editor-states";
 import { useEditorHistory } from "./history";
@@ -38,19 +38,51 @@ type LoadedResume = inferRouterOutputs<AppRouter>["resume"]["get"];
 
 export function ResumeEditor({ versionId }: { versionId?: string }) {
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const query = useQuery(
     trpc.resume.get.queryOptions(undefined, { staleTime: Infinity, refetchOnWindowFocus: false, retry: false }),
   );
+  // Bumped to start the editor over from the latest save after the resume changed somewhere else.
+  const [reload, setReload] = useState({ count: 0, versionId });
   if (query.isPending) return <EditorSkeleton />;
   if (query.isError) return <EditorError notFound={query.error.data?.code === "NOT_FOUND"} />;
-  return <LoadedResumeEditor key={query.data.id} initial={query.data} versionId={versionId} />;
+  return (
+    <LoadedResumeEditor
+      key={`${query.data.id}:${reload.count}`}
+      initial={query.data}
+      versionId={reload.count === 0 ? versionId : reload.versionId}
+      onReload={(latest, activeVersionId) => {
+        queryClient.setQueryData(trpc.resume.get.queryKey(), latest);
+        setReload((r) => ({ count: r.count + 1, versionId: activeVersionId }));
+      }}
+    />
+  );
+}
+
+/** Fetches the latest saved resume, bypassing the editor's cache. */
+function useFetchLatestResume() {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  return () => queryClient.fetchQuery({ ...trpc.resume.get.queryOptions(), staleTime: 0 });
 }
 
 const saveSlice = ({ content, versions, fileName }: ResumeData) => ({ content, versions, fileName });
 
-function LoadedResumeEditor({ initial, versionId }: { initial: LoadedResume; versionId?: string }) {
+function LoadedResumeEditor({
+  initial,
+  versionId,
+  onReload,
+}: {
+  initial: LoadedResume;
+  versionId?: string;
+  onReload: (latest: LoadedResume, activeVersionId: string) => void;
+}) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const fetchLatest = useFetchLatestResume();
+  // The save this editor builds on. Saves send it so the server can refuse to overwrite newer changes.
+  const base = useRef(initial.updatedAt);
+  const reloading = useRef(false);
   const [store] = useState(() =>
     createResumeStore({
       content: initial.content,
@@ -62,23 +94,40 @@ function LoadedResumeEditor({ initial, versionId }: { initial: LoadedResume; ver
   const save = useMutation(trpc.resume.save.mutationOptions());
   const setLastVersion = useMutation(trpc.resume.setLastVersion.mutationOptions());
 
+  const reloadFrom = (latest: LoadedResume, message: string) => {
+    if (reloading.current) return;
+    reloading.current = true;
+    toast(message);
+    onReload(latest, store.getState().activeVersionId);
+  };
+
   const { status, flush } = useAutosave(store, saveSlice, async (next, previous) => {
+    if (reloading.current) return;
     const upsertVersions = next.versions.filter((v) => !previous.versions.includes(v));
     const deleteVersionIds = previous.versions.filter((p) => !next.versions.some((v) => v.id === p.id)).map((v) => v.id);
     const contentChanged = next.content !== previous.content;
-    const { updatedAt } = await save.mutateAsync({
-      content: contentChanged ? next.content : undefined,
-      fileName: next.fileName !== previous.fileName ? next.fileName : undefined,
-      upsertVersions,
-      deleteVersionIds,
-    });
+    let updatedAt: Date;
+    try {
+      ({ updatedAt } = await save.mutateAsync({
+        content: contentChanged ? next.content : undefined,
+        fileName: next.fileName !== previous.fileName ? next.fileName : undefined,
+        upsertVersions,
+        deleteVersionIds,
+        baseUpdatedAt: base.current,
+      }));
+    } catch (error) {
+      if (!isConflict(error)) throw error;
+      reloadFrom(await fetchLatest(), "Your resume was changed in another tab or app, so it was reloaded. Your last edit wasn't saved.");
+      return;
+    }
+    base.current = updatedAt;
     queryClient.setQueryData(trpc.resume.get.queryKey(), (old) =>
       old
         ? {
             ...old,
             content: next.content,
             fileName: next.fileName,
-            updatedAt: contentChanged ? updatedAt : old.updatedAt,
+            updatedAt,
             versions: next.versions.map((v) => ({
               ...v,
               updatedAt: upsertVersions.includes(v)
@@ -89,6 +138,10 @@ function LoadedResumeEditor({ initial, versionId }: { initial: LoadedResume; ver
         : old,
     );
   });
+
+  useOutsideChanges(status, base, fetchLatest, (latest) =>
+    reloadFrom(latest, "Your resume was updated in another tab or app."),
+  );
 
   // Keep the URL and "open this version next time" in step with the version being edited.
   const { mutate: rememberVersion } = setLastVersion;
