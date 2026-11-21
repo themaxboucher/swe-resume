@@ -48,7 +48,12 @@ export function SocialButtons({ providers, callbackURL }: { providers: SocialPro
           </Button>
         )}
         {providers.github && (
-          <Button variant="outline" size="lg" disabled={pending !== null} onClick={() => go("github")}>
+          <Button
+            size="lg"
+            className="bg-black text-white shadow-[inset_0_-2px_0_rgb(255_255_255/0.2),0_7px_14px_-11px_rgb(0_0_0/0.6)]! hover:bg-black/85 dark:border dark:border-white/15"
+            disabled={pending !== null}
+            onClick={() => go("github")}
+          >
             <GitHubMark /> Continue with GitHub
           </Button>
         )}
